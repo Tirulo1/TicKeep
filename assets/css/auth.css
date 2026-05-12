@@ -1,0 +1,251 @@
+/* =====================================================
+   TicKeep — auth.css
+   ===================================================== */
+
+:root {
+  --tk-blue:        #1D4ED8;
+  --tk-blue-hover:  #1e40af;
+  --tk-dark:        #111827;
+  --tk-muted:       #6B7280;
+  --tk-border:      #E2E6EA;
+  --tk-bg:          #F0F2F5;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ── Body ─────────────────────────────────────── */
+body.tk-auth-body {
+  background: var(--tk-bg);
+  font-family: 'Poppins', sans-serif;
+  color: var(--tk-dark);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+/* ── Card ─────────────────────────────────────── */
+.tk-auth-main {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.tk-auth-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.10);
+  padding: 2.75rem 2.5rem;
+  width: 100%;
+  max-width: 460px;
+}
+
+/* ── Logo ─────────────────────────────────────── */
+.tk-auth-logo {
+  text-align: center;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--tk-blue);
+  letter-spacing: -0.5px;
+  margin-bottom: 0.15rem;
+}
+
+/* ── Page title ───────────────────────────────── */
+.tk-auth-page-title {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--tk-dark);
+  margin-bottom: 1.75rem;
+}
+
+/* ── Labels ───────────────────────────────────── */
+.form-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+/* ── Inputs ───────────────────────────────────── */
+.form-control {
+  width: 100%;
+  border: 1.5px solid var(--tk-border);
+  border-radius: 10px !important;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  color: var(--tk-dark);
+  background: #fff;
+  padding: 0.75rem 1rem;
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.form-control::placeholder { color: #B0B8C1; }
+.form-control:focus {
+  border-color: var(--tk-blue);
+  box-shadow: 0 0 0 3px rgba(29,78,216,.10);
+}
+.form-control-lg { font-size: 0.95rem !important; padding: 0.75rem 1rem !important; }
+
+/* ── Password wrapper ─────────────────────────── */
+.input-pw {
+  position: relative;
+}
+.input-pw .form-control {
+  padding-right: 3rem;
+}
+.toggle-pw {
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--tk-muted);
+  padding: .2rem;
+  display: flex;
+  align-items: center;
+  transition: color .2s;
+  line-height: 1;
+}
+.toggle-pw:hover { color: var(--tk-blue); }
+
+/* ── Submit button ────────────────────────────── */
+.btn-auth {
+  display: block;
+  width: 100%;
+  background: var(--tk-blue);
+  border: none;
+  border-radius: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  padding: 0.85rem 1.5rem;
+  cursor: pointer;
+  transition: background .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 2px 10px rgba(29,78,216,.30);
+  margin-top: 0.5rem;
+  text-align: center;
+  text-decoration: none;
+}
+.btn-auth:hover {
+  background: var(--tk-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(29,78,216,.38);
+  color: #fff;
+}
+.btn-auth:active { transform: translateY(0); }
+
+/* ── Spacing ──────────────────────────────────── */
+.mb-f { margin-bottom: 1.1rem; }
+
+/* ── Alerts ───────────────────────────────────── */
+.tk-alert {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  border-radius: 10px;
+  font-size: .87rem;
+  padding: .7rem 1rem;
+  margin-bottom: 1rem;
+}
+.tk-alert-danger  { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+.tk-alert-success { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+.tk-alert-warning { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+.tk-alert-info    { background: #EFF6FF; color: #1e40af; border: 1px solid #BFDBFE; }
+
+/* ── Switch link (¿Ya tienes cuenta?) ────────── */
+.tk-switch {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: .88rem;
+  color: var(--tk-muted);
+}
+.tk-switch a {
+  color: var(--tk-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+.tk-switch a:hover { text-decoration: underline; }
+
+/* ── Forgot password link ─────────────────────── */
+.tk-forgot {
+  text-align: right;
+  margin-top: -0.4rem;
+  margin-bottom: 1rem;
+}
+.tk-forgot a {
+  font-size: .82rem;
+  color: var(--tk-muted);
+  text-decoration: none;
+}
+.tk-forgot a:hover { color: var(--tk-blue); text-decoration: underline; }
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 480px) {
+  .tk-auth-card { padding: 2rem 1.5rem; }
+  .tk-auth-logo { font-size: 2rem; }
+}
+
+/* ================================================================
+   ESTILOS DE LA APP PRINCIPAL (header, cards, etc.)
+   ================================================================ */
+
+body:not(.tk-auth-body) {
+  font-family: 'Poppins', sans-serif;
+  background: #F3F4F6;
+  color: #111827;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tk-header {
+  background: linear-gradient(135deg, #1D4ED8 0%, #1e3a8a 100%);
+  padding: 1rem 0;
+  box-shadow: 0 2px 8px rgba(29,78,216,.25);
+}
+.tk-logo {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+.tk-logo:hover { color: #bfdbfe; }
+
+.avatar-img {
+  width: 40px; height: 40px;
+  border-radius: 50%; object-fit: cover;
+  border: 2px solid rgba(255,255,255,.6);
+}
+
+.tk-btn-logout {
+  display: flex; align-items: center; gap: .4rem;
+  color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 50px;
+  padding: .35rem .9rem;
+  font-size: .85rem; font-weight: 500;
+  text-decoration: none;
+  font-family: 'Poppins', sans-serif;
+  transition: background .2s, color .2s;
+}
+.tk-btn-logout:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+.main-footer {
+  background: linear-gradient(135deg, #1D4ED8 0%, #1e3a8a 100%);
+  color: rgba(255,255,255,.9);
+  text-align: center;
+  padding: 1.75rem;
+  margin-top: auto;
+  font-size: .88rem;
+}
+.x-small { font-size: .78rem; color: rgba(255,255,255,.65); }
