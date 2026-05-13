@@ -11,9 +11,10 @@ if ($tokenEsperado === '' || !hash_equals($tokenEsperado, $tokenRecibido)) {
 }
 // --- FIN PROTECCIÓN ---
 
-die("🛑 ¡Llegué aquí! El problema está más abajo.");
+
 
 require __DIR__ . '/../config/bd.php';   
+die("🛑 ¡Llegué aquí! El problema está más abajo.");
 require __DIR__ . '/../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
