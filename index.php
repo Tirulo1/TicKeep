@@ -10,6 +10,33 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $id_usuario = $_SESSION['id_usuario'];
 
+function rutaFotoPerfil($fotoPerfil)
+{
+    $default = 'assets/img/default-avatar.png';
+
+    if (empty($fotoPerfil)) {
+        return $default;
+    }
+
+    $fotoPerfil = trim($fotoPerfil);
+    $posiblesRutas = [];
+
+    if (str_contains($fotoPerfil, '/')) {
+        $posiblesRutas[] = $fotoPerfil;
+    } else {
+        $posiblesRutas[] = 'assets/img/' . $fotoPerfil;
+        $posiblesRutas[] = 'uploads/perfiles/' . $fotoPerfil;
+    }
+
+    foreach ($posiblesRutas as $ruta) {
+        if (file_exists(__DIR__ . '/' . $ruta)) {
+            return $ruta;
+        }
+    }
+
+    return $default;
+}
+
 try {
     $queryUser = "SELECT u.nombre, c.foto_perfil FROM usuarios u 
                   LEFT JOIN opciones_configuracion c ON u.id_usuario = c.id_usuario 
@@ -30,11 +57,7 @@ try {
     die("Error: " . $e->getMessage());
 }
 
-$fotoPerfil = 'default-avatar.png';
-
-if (!empty($userData['foto_perfil']) && file_exists('assets/img/' . $userData['foto_perfil'])) {
-    $fotoPerfil = $userData['foto_perfil'];
-}
+$fotoPerfil = rutaFotoPerfil($userData['foto_perfil'] ?? null);
 
 $garantiasCalendario = [];
 foreach ($garantias as $g) {
@@ -80,7 +103,7 @@ $garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
             <div class="d-flex align-items-center gap-3">
                 <span class="text-white d-none d-sm-block fw-500"><?= htmlspecialchars($userData['nombre']); ?></span>
                 <a href="configuracion.php">
-                    <img src="assets/img/<?= htmlspecialchars($fotoPerfil); ?>" class="avatar-img" alt="Perfil">
+                    <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="avatar-img" alt="Perfil">
                 </a>
                 <a href="logout.php" class="tk-btn-logout" title="Cerrar sesión">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

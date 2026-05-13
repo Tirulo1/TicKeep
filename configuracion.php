@@ -17,6 +17,34 @@ function valor($array, $clave, $defecto = '')
     return isset($array[$clave]) && $array[$clave] !== null ? $array[$clave] : $defecto;
 }
 
+function rutaFotoPerfil($fotoPerfil)
+{
+    $default = 'assets/img/default-avatar.png';
+
+    if (empty($fotoPerfil)) {
+        return $default;
+    }
+
+    $fotoPerfil = trim($fotoPerfil);
+
+    $posiblesRutas = [];
+
+    if (str_contains($fotoPerfil, '/')) {
+        $posiblesRutas[] = $fotoPerfil;
+    } else {
+        $posiblesRutas[] = 'assets/img/' . $fotoPerfil;
+        $posiblesRutas[] = 'uploads/perfiles/' . $fotoPerfil;
+    }
+
+    foreach ($posiblesRutas as $ruta) {
+        if (file_exists(__DIR__ . '/' . $ruta)) {
+            return $ruta;
+        }
+    }
+
+    return $default;
+}
+
 try {
     $sql = "SELECT 
                 u.nombre,
@@ -59,11 +87,8 @@ try {
     die("Error: " . $e->getMessage());
 }
 
-$fotoPerfil = 'default-avatar.png';
-
-if (!empty($usuario['foto_perfil']) && file_exists(__DIR__ . '/assets/img/' . $usuario['foto_perfil'])) {
-    $fotoPerfil = $usuario['foto_perfil'];
-}
+$fotoPerfilActual = $usuario['foto_perfil'] ?? null;
+$fotoPerfil = rutaFotoPerfil($fotoPerfilActual);
 $temaActual = valor($usuario, 'tema', 'claro');
 $colorActual = valor($usuario, 'color_acento', '#202bbf');
 
@@ -199,35 +224,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                 }
 
-                $nuevaFoto = $fotoPerfil;
+                $nuevaFoto = $usuario['foto_perfil'] ?? null;
 
                 if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] !== UPLOAD_ERR_NO_FILE) {
-                    if ($_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-                        $directorio = 'assets/img/';
-
-                        if (!is_dir($directorio)) {
-                            mkdir($directorio, 0777, true);
-                        }
-
-                        $extension = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));
-                        $permitidas = ['jpg', 'jpeg', 'png', 'webp'];
-                        $tamano = $_FILES['foto_perfil']['size'];
-
-                        if (!in_array($extension, $permitidas, true)) {
-                            throw new Exception('Formato de imagen no permitido.');
-                        }
-
-                        if ($tamano > 3 * 1024 * 1024) {
-                            throw new Exception('La foto de perfil no puede superar los 3 MB.');
-                        }
-
-                        $nuevoNombre = 'perfil_' . $id_usuario . '_' . time() . '.' . $extension;
-                        $rutaFinal = $directorio . $nuevoNombre;
-
-                        if (move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $rutaFinal)) {
-                            $nuevaFoto = $nuevoNombre;
-                        }
+                    if ($_FILES['foto_perfil']['error'] !== UPLOAD_ERR_OK) {
+                        throw new Exception('Error al subir la foto de perfil.');
                     }
+
+                    $directorioRelativo = 'uploads/perfiles/';
+                    $directorioAbsoluto = __DIR__ . '/' . $directorioRelativo;
+
+                    if (!is_dir($directorioAbsoluto) && !mkdir($directorioAbsoluto, 0775, true)) {
+                        throw new Exception('No se pudo crear la carpeta de perfiles.');
+                    }
+
+                    if (!is_writable($directorioAbsoluto)) {
+                        throw new Exception('La carpeta uploads/perfiles no tiene permisos de escritura.');
+                    }
+
+                    $extension = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));
+                    $permitidas = ['jpg', 'jpeg', 'png', 'webp'];
+                    $tamano = $_FILES['foto_perfil']['size'];
+
+                    if (!in_array($extension, $permitidas, true)) {
+                        throw new Exception('Formato de imagen no permitido. Usa JPG, PNG o WEBP.');
+                    }
+
+                    if ($tamano > 3 * 1024 * 1024) {
+                        throw new Exception('La foto de perfil no puede superar los 3 MB.');
+                    }
+
+                    $nuevoNombre = 'perfil_' . $id_usuario . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+                    $rutaFinal = $directorioAbsoluto . $nuevoNombre;
+
+                    if (!move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $rutaFinal)) {
+                        throw new Exception('No se pudo guardar la foto de perfil.');
+                    }
+
+                    $nuevaFoto = $directorioRelativo . $nuevoNombre;
                 }
 
                 if ($existeConfiguracion) {
@@ -362,7 +396,8 @@ if (isset($_GET['guardado'])) {
         $stmt->execute([':id' => $id_usuario]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $fotoPerfil = !empty($usuario['foto_perfil']) ? $usuario['foto_perfil'] : 'default-avatar.png';
+        $fotoPerfilActual = $usuario['foto_perfil'] ?? null;
+        $fotoPerfil = rutaFotoPerfil($fotoPerfilActual);
         $temaActual = valor($usuario, 'tema', 'claro');
         $colorActual = valor($usuario, 'color_acento', '#202bbf');
     } catch (PDOException $e) {
@@ -695,7 +730,7 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
             <a href="index.php" class="tk-logo">TicKeep</a>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-white d-none d-sm-block"><?= htmlspecialchars($_SESSION['nombre'] ?? 'Usuario') ?></span>
-                <img src="assets/img/<?= htmlspecialchars($fotoPerfil); ?>" class="avatar-img" alt="Perfil">
+                <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="avatar-img" alt="Perfil">
             </div>
         </div>
     </header>
@@ -707,7 +742,7 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
             <div class="settings-layout">
                 <aside class="settings-sidebar">
                     <div class="text-center">
-                        <img src="assets/img/<?= htmlspecialchars($fotoPerfil); ?>" class="sidebar-avatar" alt="Foto perfil">
+                        <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="sidebar-avatar" alt="Foto perfil">
                         <div class="sidebar-name"><?= htmlspecialchars($usuario['nombre']) ?></div>
                         <div class="sidebar-email"><?= htmlspecialchars($usuario['email']) ?></div>
                     </div>
@@ -724,7 +759,7 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                 <section class="config-card">
                     <form method="POST" enctype="multipart/form-data">
                         <div class="profile-wrapper">
-                            <img src="assets/img/<?= htmlspecialchars($fotoPerfil); ?>" class="profile-img" alt="Foto perfil">
+                            <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="profile-img" alt="Foto perfil">
                             <label for="foto_perfil" class="edit-photo" title="Cambiar foto">✎</label>
                             <input type="file" id="foto_perfil" name="foto_perfil" accept=".jpg,.jpeg,.png,.webp" hidden>
                         </div>
