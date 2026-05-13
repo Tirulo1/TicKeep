@@ -1,4 +1,14 @@
 <?php
+// DIAGNÓSTICO TEMPORAL - borrar después
+if (isset($_GET['debug'])) {
+    echo "MYSQLHOST: " . getenv('MYSQLHOST') . "<br>";
+    echo "MYSQLPORT: " . getenv('MYSQLPORT') . "<br>";
+    echo "MYSQLDATABASE: " . getenv('MYSQLDATABASE') . "<br>";
+    echo "PDO drivers: " . implode(', ', PDO::getAvailableDrivers());
+    exit();
+}
+
+
 session_start();
 require 'config/bd.php';
 require 'includes/preferencias_usuario.php';
