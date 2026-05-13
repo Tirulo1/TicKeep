@@ -1,11 +1,6 @@
 <?php
 // --- PROTECCIÓN CRON ---
-$tokenEsperado = getenv('CRON_TOKEN') ?: '';
-$tokenRecibido = $_GET['token'] ?? '';
-if ($tokenEsperado === '' || !hash_equals($tokenEsperado, $tokenRecibido)) {
-    http_response_code(403);
-    exit('Acceso denegado.');
-}
+
 // --- FIN PROTECCIÓN ---
 
 require __DIR__ . '/../config/bd.php';   // estas líneas ya existen, no las toques
@@ -16,7 +11,13 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 $mailConfig = require __DIR__ . '/../config/mail.php';
-
+ 
+$tokenEsperado = getenv('CRON_TOKEN') ?: '';
+$tokenRecibido = $_GET['token'] ?? '';
+if ($tokenEsperado === '' || !hash_equals($tokenEsperado, $tokenRecibido)) {
+    http_response_code(403);
+    exit('Acceso denegado.');
+}
 function enviarCorreo($mailConfig, $destino, $nombreDestino, $asunto, $html)
 {
     $mail = new PHPMailer(true);
