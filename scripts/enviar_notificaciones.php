@@ -1,4 +1,8 @@
 <?php
+
+date_default_timezone_set('Europe/Madrid');
+
+// ... aquí sigue tu código del token y lo demás
 // --- PROTECCIÓN CRON ---
 
 // --- FIN PROTECCIÓN ---
@@ -12,7 +16,7 @@ use PHPMailer\PHPMailer\Exception;
 
 $mailConfig = require __DIR__ . '/../config/mail.php';
  
-$tokenEsperado = getenv('CRON_TOKEN') ?: 'TicKeepDAW';
+$tokenEsperado = getenv('CRON_TOKEN') ?: '';
 $tokenRecibido = $_GET['token'] ?? '';
 if ($tokenEsperado === '' || !hash_equals($tokenEsperado, $tokenRecibido)) {
     http_response_code(403);
