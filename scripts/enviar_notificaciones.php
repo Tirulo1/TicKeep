@@ -2,13 +2,16 @@
 
 date_default_timezone_set('Europe/Madrid');
 
-// ... aquí sigue tu código del token y lo demás
 // --- PROTECCIÓN CRON ---
-
+$tokenEsperado = getenv('CRON_TOKEN') ?: '';
+$tokenRecibido = $_GET['token'] ?? '';
+if ($tokenEsperado === '' || !hash_equals($tokenEsperado, $tokenRecibido)) {
+    http_response_code(403);
+    exit('Acceso denegado.');
+}
 // --- FIN PROTECCIÓN ---
 
-require __DIR__ . '/../config/bd.php';   // estas líneas ya existen, no las toques
-// ... resto igual
+require __DIR__ . '/../config/bd.php';   
 require __DIR__ . '/../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -16,164 +19,161 @@ use PHPMailer\PHPMailer\Exception;
 
 $mailConfig = require __DIR__ . '/../config/mail.php';
 
-$tokenEsperado = getenv('CRON_TOKEN') ?: '';
-$tokenRecibido = $_GET['token'] ?? '';
-if ($tokenEsperado === '' || !hash_equals($tokenEsperado, $tokenRecibido)) {
-  http_response_code(403);
-  exit('Acceso denegado.');
-}
 function enviarCorreo($mailConfig, $destino, $nombreDestino, $asunto, $html)
 {
-  $mail = new PHPMailer(true);
-  $mail->Debugoutput = 'html';
+    $mail = new PHPMailer(true);
+    
+    // MODO DEBUG ACTIVADO PARA DETECTAR EL ERROR 504
+    $mail->SMTPDebug = 2;
+    $mail->Debugoutput = 'html';
 
-  $mail->isSMTP();
-  $mail->Host = $mailConfig['host'];
-  $mail->SMTPAuth = true;
-  $mail->Username = $mailConfig['username'];
-  $mail->Password = $mailConfig['password'];
-  $mail->SMTPSecure = $mailConfig['secure'];
-  $mail->Port = $mailConfig['port'];
+    $mail->isSMTP();
+    $mail->Host = $mailConfig['host'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $mailConfig['username'];
+    $mail->Password = $mailConfig['password'];
+    $mail->SMTPSecure = $mailConfig['secure'];
+    $mail->Port = $mailConfig['port'];
 
-  $mail->CharSet = 'UTF-8';
-  $mail->Encoding = 'base64';
+    $mail->CharSet = 'UTF-8';
+    $mail->Encoding = 'base64';
 
-  $mail->setFrom($mailConfig['from_email'], $mailConfig['from_name']);
-  $mail->addAddress($destino, $nombreDestino);
+    $mail->setFrom($mailConfig['from_email'], $mailConfig['from_name']);
+    $mail->addAddress($destino, $nombreDestino);
 
-  $mail->isHTML(true);
-  $mail->Subject = $asunto;
-  $mail->Body = $html;
-  $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $html));
+    $mail->isHTML(true);
+    $mail->Subject = $asunto;
+    $mail->Body = $html;
+    $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $html));
 
-  $mail->send();
+    $mail->send();
 }
 
 function yaSeEnvio($pdo, $id_usuario, $id_garantia, $tipo, $periodoClave = null)
 {
-  $sql = "SELECT COUNT(*) FROM notificaciones_enviadas
+    $sql = "SELECT COUNT(*) FROM notificaciones_enviadas
             WHERE id_usuario = :id_usuario
             AND tipo = :tipo";
 
-  $params = [
-    ':id_usuario' => $id_usuario,
-    ':tipo' => $tipo
-  ];
+    $params = [
+        ':id_usuario' => $id_usuario,
+        ':tipo' => $tipo
+    ];
 
-  if ($id_garantia !== null) {
-    $sql .= " AND id_garantia = :id_garantia";
-    $params[':id_garantia'] = $id_garantia;
-  }
+    if ($id_garantia !== null) {
+        $sql .= " AND id_garantia = :id_garantia";
+        $params[':id_garantia'] = $id_garantia;
+    }
 
-  if ($periodoClave !== null) {
-    $sql .= " AND periodo_clave = :periodo";
-    $params[':periodo'] = $periodoClave;
-  }
+    if ($periodoClave !== null) {
+        $sql .= " AND periodo_clave = :periodo";
+        $params[':periodo'] = $periodoClave;
+    }
 
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute($params);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
 
-  return (int) $stmt->fetchColumn() > 0;
+    return (int) $stmt->fetchColumn() > 0;
 }
 
 function registrarEnvio($pdo, $id_usuario, $id_garantia, $tipo, $periodoClave = null)
 {
-  $stmt = $pdo->prepare("INSERT INTO notificaciones_enviadas
+    $stmt = $pdo->prepare("INSERT INTO notificaciones_enviadas
                            (id_usuario, id_garantia, tipo, fecha_envio, periodo_clave)
                            VALUES
                            (:id_usuario, :id_garantia, :tipo, NOW(), :periodo)");
 
-  $stmt->execute([
-    ':id_usuario' => $id_usuario,
-    ':id_garantia' => $id_garantia,
-    ':tipo' => $tipo,
-    ':periodo' => $periodoClave
-  ]);
+    $stmt->execute([
+        ':id_usuario' => $id_usuario,
+        ':id_garantia' => $id_garantia,
+        ':tipo' => $tipo,
+        ':periodo' => $periodoClave
+    ]);
 }
 
 function puedeEnviarPorFrecuencia($pdo, $id_usuario, $id_garantia, $tipo, $frecuencia)
 {
-  if ($frecuencia === 'una_vez') {
-    return !yaSeEnvio($pdo, $id_usuario, $id_garantia, $tipo);
-  }
+    if ($frecuencia === 'una_vez') {
+        return !yaSeEnvio($pdo, $id_usuario, $id_garantia, $tipo);
+    }
 
-  $stmt = $pdo->prepare("SELECT fecha_envio FROM notificaciones_enviadas
+    $stmt = $pdo->prepare("SELECT fecha_envio FROM notificaciones_enviadas
                            WHERE id_usuario = :id_usuario
                            AND id_garantia = :id_garantia
                            AND tipo = :tipo
                            ORDER BY fecha_envio DESC
                            LIMIT 1");
 
-  $stmt->execute([
-    ':id_usuario' => $id_usuario,
-    ':id_garantia' => $id_garantia,
-    ':tipo' => $tipo
-  ]);
+    $stmt->execute([
+        ':id_usuario' => $id_usuario,
+        ':id_garantia' => $id_garantia,
+        ':tipo' => $tipo
+    ]);
 
-  $ultima = $stmt->fetchColumn();
+    $ultima = $stmt->fetchColumn();
 
-  if (!$ultima) {
-    return true;
-  }
+    if (!$ultima) {
+        return true;
+    }
 
-  $ultimaFecha = new DateTime($ultima);
-  $ahora = new DateTime();
-  $dias = (int) $ultimaFecha->diff($ahora)->format('%a');
+    $ultimaFecha = new DateTime($ultima);
+    $ahora = new DateTime();
+    $dias = (int) $ultimaFecha->diff($ahora)->format('%a');
 
-  if ($frecuencia === 'diario') {
-    return $dias >= 1;
-  }
+    if ($frecuencia === 'diario') {
+        return $dias >= 1;
+    }
 
-  if ($frecuencia === 'semanal') {
-    return $dias >= 7;
-  }
+    if ($frecuencia === 'semanal') {
+        return $dias >= 7;
+    }
 
-  return false;
+    return false;
 }
 
 function calcularDiasRestantes($fechaVencimiento)
 {
-  $hoy = new DateTime('today');
-  $vencimiento = new DateTime($fechaVencimiento);
+    $hoy = new DateTime('today');
+    $vencimiento = new DateTime($fechaVencimiento);
 
-  return (int) $hoy->diff($vencimiento)->format('%r%a');
+    return (int) $hoy->diff($vencimiento)->format('%r%a');
 }
 
 function limpiar($texto)
 {
-  return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
 }
 
 function plantillaGarantiaVencePronto($nombreUsuario, $nombreProducto, $tienda, $fechaVencimiento, $diasRestantes, $enlaceApp)
 {
-  $asuntoProducto = $nombreProducto !== '' ? $nombreProducto : 'tu garantía';
+    $asuntoProducto = $nombreProducto !== '' ? $nombreProducto : 'tu garantía';
 
-  if ($diasRestantes <= 0) {
-    $asunto = "TicKeep | La garantía de {$asuntoProducto} vence hoy";
-    $estadoTexto = "Vence hoy";
-    $colorEstado = "#dc2626";
-    $textoDiasRestantes = "Vence hoy";
-  } elseif ($diasRestantes === 1) {
-    $asunto = "TicKeep | La garantía de {$asuntoProducto} vence mañana";
-    $estadoTexto = "Vence mañana";
-    $colorEstado = "#d97706";
-    $textoDiasRestantes = "1 día";
-  } else {
-    $asunto = "TicKeep | La garantía de {$asuntoProducto} vence en {$diasRestantes} días";
-    $estadoTexto = "Expira pronto";
-    $colorEstado = "#d97706";
-    $textoDiasRestantes = $diasRestantes . " días";
-  }
+    if ($diasRestantes <= 0) {
+        $asunto = "TicKeep | La garantía de {$asuntoProducto} vence hoy";
+        $estadoTexto = "Vence hoy";
+        $colorEstado = "#dc2626";
+        $textoDiasRestantes = "Vence hoy";
+    } elseif ($diasRestantes === 1) {
+        $asunto = "TicKeep | La garantía de {$asuntoProducto} vence mañana";
+        $estadoTexto = "Vence mañana";
+        $colorEstado = "#d97706";
+        $textoDiasRestantes = "1 día";
+    } else {
+        $asunto = "TicKeep | La garantía de {$asuntoProducto} vence en {$diasRestantes} días";
+        $estadoTexto = "Expira pronto";
+        $colorEstado = "#d97706";
+        $textoDiasRestantes = $diasRestantes . " días";
+    }
 
-  $nombreUsuarioSeguro = limpiar($nombreUsuario ?: 'usuario');
-  $nombreProductoSeguro = limpiar($nombreProducto ?: 'Producto sin nombre');
-  $tiendaSegura = limpiar($tienda ?: 'No especificada');
-  $fechaVencimientoSegura = limpiar($fechaVencimiento);
-  $estadoTextoSeguro = limpiar($estadoTexto);
-  $textoDiasRestantesSeguro = limpiar($textoDiasRestantes);
-  $enlaceAppSeguro = limpiar($enlaceApp);
+    $nombreUsuarioSeguro = limpiar($nombreUsuario ?: 'usuario');
+    $nombreProductoSeguro = limpiar($nombreProducto ?: 'Producto sin nombre');
+    $tiendaSegura = limpiar($tienda ?: 'No especificada');
+    $fechaVencimientoSegura = limpiar($fechaVencimiento);
+    $estadoTextoSeguro = limpiar($estadoTexto);
+    $textoDiasRestantesSeguro = limpiar($textoDiasRestantes);
+    $enlaceAppSeguro = limpiar($enlaceApp);
 
-  $html = '
+    $html = '
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -263,23 +263,23 @@ function plantillaGarantiaVencePronto($nombreUsuario, $nombreProducto, $tienda, 
 </body>
 </html>';
 
-  return [
-    'asunto' => $asunto,
-    'html' => $html
-  ];
+    return [
+        'asunto' => $asunto,
+        'html' => $html
+    ];
 }
 
 function plantillaGarantiaCaducada($nombreUsuario, $nombreProducto, $tienda, $fechaVencimiento, $enlaceApp)
 {
-  $nombreUsuarioSeguro = limpiar($nombreUsuario ?: 'usuario');
-  $nombreProductoSeguro = limpiar($nombreProducto ?: 'Producto sin nombre');
-  $tiendaSegura = limpiar($tienda ?: 'No especificada');
-  $fechaVencimientoSegura = limpiar($fechaVencimiento);
-  $enlaceAppSeguro = limpiar($enlaceApp);
+    $nombreUsuarioSeguro = limpiar($nombreUsuario ?: 'usuario');
+    $nombreProductoSeguro = limpiar($nombreProducto ?: 'Producto sin nombre');
+    $tiendaSegura = limpiar($tienda ?: 'No especificada');
+    $fechaVencimientoSegura = limpiar($fechaVencimiento);
+    $enlaceAppSeguro = limpiar($enlaceApp);
 
-  $asunto = "TicKeep | La garantía de {$nombreProductoSeguro} ha caducado";
+    $asunto = "TicKeep | La garantía de {$nombreProductoSeguro} ha caducado";
 
-  $html = '
+    $html = '
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -340,41 +340,41 @@ function plantillaGarantiaCaducada($nombreUsuario, $nombreProducto, $tienda, $fe
 </body>
 </html>';
 
-  return [
-    'asunto' => $asunto,
-    'html' => $html
-  ];
+    return [
+        'asunto' => $asunto,
+        'html' => $html
+    ];
 }
 
 function plantillaResumenMensual($nombreUsuario, $resumen, $enlaceApp)
 {
-  $nombreUsuarioSeguro = limpiar($nombreUsuario ?: 'usuario');
-  $enlaceAppSeguro = limpiar($enlaceApp);
+    $nombreUsuarioSeguro = limpiar($nombreUsuario ?: 'usuario');
+    $enlaceAppSeguro = limpiar($enlaceApp);
 
-  $lineas = "";
+    $lineas = "";
 
-  foreach ($resumen as $r) {
-    $estado = limpiar($r['estado']);
-    $total = (int) $r['total'];
-    $lineas .= "
+    foreach ($resumen as $r) {
+        $estado = limpiar($r['estado']);
+        $total = (int) $r['total'];
+        $lineas .= "
             <tr>
                 <td style='padding:12px 16px; border-bottom:1px solid #e5e7eb; font-weight:bold;'>{$estado}</td>
                 <td style='padding:12px 16px; border-bottom:1px solid #e5e7eb;'>{$total}</td>
             </tr>
         ";
-  }
+    }
 
-  if ($lineas === "") {
-    $lineas = "
+    if ($lineas === "") {
+        $lineas = "
             <tr>
                 <td colspan='2' style='padding:12px 16px; border-bottom:1px solid #e5e7eb;'>No tienes garantías registradas actualmente.</td>
             </tr>
         ";
-  }
+    }
 
-  $asunto = "TicKeep | Resumen mensual de tus garantías";
+    $asunto = "TicKeep | Resumen mensual de tus garantías";
 
-  $html = '
+    $html = '
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -428,14 +428,16 @@ function plantillaResumenMensual($nombreUsuario, $resumen, $enlaceApp)
 </body>
 </html>';
 
-  return [
-    'asunto' => $asunto,
-    'html' => $html
-  ];
+    return [
+        'asunto' => $asunto,
+        'html' => $html
+    ];
 }
 
 $horaActual = date('H:i');
-$enlaceApp = getenv('APP_URL') ?: 'http://localhost/ULTIMO TICKEEP/index.php';
+$enlaceApp = getenv('APP_URL') ?: 'https://tickeep-production.up.railway.app'; // Cambiado a tu URL de prod
+
+echo "<h3>✅ Base de datos conectada correctamente.</h3>";
 
 $sqlUsuarios = "SELECT 
                     u.id_usuario,
@@ -455,118 +457,124 @@ $sqlUsuarios = "SELECT
 $stmtUsuarios = $pdo->query($sqlUsuarios);
 $usuarios = $stmtUsuarios->fetchAll(PDO::FETCH_ASSOC);
 
+echo "<h3>👥 Usuarios con notificaciones activadas: " . count($usuarios) . "</h3>";
+
 foreach ($usuarios as $usuario) {
-  $idUsuario = (int) $usuario['id_usuario'];
-  $horaPreferida = $usuario['hora_recordatorio'] ?: '09:00';
+    $idUsuario = (int) $usuario['id_usuario'];
+    
+    // FORMATO INTELIGENTE: Convierte "08:50 PM" a "20:50" automáticamente para evitar fallos de cálculo
+    $horaPreferidaRaw = $usuario['hora_recordatorio'] ?: '09:00';
+    $horaPreferida = date('H:i', strtotime($horaPreferidaRaw));
 
-  if ($horaActual < $horaPreferida) {
-    continue;
-  }
+    if ($horaActual < $horaPreferida) {
+        continue;
+    }
 
-  if ((int) $usuario['aviso_vencimiento'] === 1) {
-    $diasAviso = (int) $usuario['dias_aviso'];
+    if ((int) $usuario['aviso_vencimiento'] === 1) {
+        $diasAviso = (int) $usuario['dias_aviso'];
 
-    $sqlGarantias = "SELECT *
+        $sqlGarantias = "SELECT *
                          FROM garantias
                          WHERE id_usuario = :id
                          AND fecha_vencimiento >= CURDATE()
                          AND DATEDIFF(fecha_vencimiento, CURDATE()) <= :dias";
 
-    $stmtGarantias = $pdo->prepare($sqlGarantias);
-    $stmtGarantias->execute([
-      ':id' => $idUsuario,
-      ':dias' => $diasAviso
-    ]);
+        $stmtGarantias = $pdo->prepare($sqlGarantias);
+        $stmtGarantias->execute([
+            ':id' => $idUsuario,
+            ':dias' => $diasAviso
+        ]);
 
-    $garantias = $stmtGarantias->fetchAll(PDO::FETCH_ASSOC);
+        $garantias = $stmtGarantias->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($garantias as $g) {
-      $frecuencia = $usuario['frecuencia_recordatorio'] ?: 'una_vez';
+        foreach ($garantias as $g) {
+            $frecuencia = $usuario['frecuencia_recordatorio'] ?: 'una_vez';
 
-      if (!puedeEnviarPorFrecuencia($pdo, $idUsuario, $g['id_garantia'], 'vencimiento', $frecuencia)) {
-        continue;
-      }
+            if (!puedeEnviarPorFrecuencia($pdo, $idUsuario, $g['id_garantia'], 'vencimiento', $frecuencia)) {
+                continue;
+            }
 
-      $diasRestantes = calcularDiasRestantes($g['fecha_vencimiento']);
+            $diasRestantes = calcularDiasRestantes($g['fecha_vencimiento']);
 
-      $nombreUsuario = $usuario['nombre'] ?? 'usuario';
-      $nombreProducto = $g['nombre_producto'] ?? 'tu garantía';
-      $tienda = $g['tienda'] ?? 'No especificada';
-      $fechaVencimiento = date('d/m/Y', strtotime($g['fecha_vencimiento']));
+            $nombreUsuario = $usuario['nombre'] ?? 'usuario';
+            $nombreProducto = $g['nombre_producto'] ?? 'tu garantía';
+            $tienda = $g['tienda'] ?? 'No especificada';
+            $fechaVencimiento = date('d/m/Y', strtotime($g['fecha_vencimiento']));
 
-      $correo = plantillaGarantiaVencePronto(
-        $nombreUsuario,
-        $nombreProducto,
-        $tienda,
-        $fechaVencimiento,
-        $diasRestantes,
-        $enlaceApp
-      );
+            $correo = plantillaGarantiaVencePronto(
+                $nombreUsuario,
+                $nombreProducto,
+                $tienda,
+                $fechaVencimiento,
+                $diasRestantes,
+                $enlaceApp
+            );
 
-      enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
-      registrarEnvio($pdo, $idUsuario, $g['id_garantia'], 'vencimiento');
-
-      echo "Enviado aviso de vencimiento a {$usuario['email']} para {$g['nombre_producto']}\n";
+            echo "Enviando aviso de vencimiento a {$usuario['email']}...<br>";
+            enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
+            registrarEnvio($pdo, $idUsuario, $g['id_garantia'], 'vencimiento');
+            echo "✅ Enviado.<br>";
+        }
     }
-  }
 
-  if ((int) $usuario['notificar_caducadas'] === 1) {
-    $sqlCaducadas = "SELECT *
+    if ((int) $usuario['notificar_caducadas'] === 1) {
+        $sqlCaducadas = "SELECT *
                          FROM garantias
                          WHERE id_usuario = :id
                          AND fecha_vencimiento < CURDATE()";
 
-    $stmtCaducadas = $pdo->prepare($sqlCaducadas);
-    $stmtCaducadas->execute([':id' => $idUsuario]);
-    $caducadas = $stmtCaducadas->fetchAll(PDO::FETCH_ASSOC);
+        $stmtCaducadas = $pdo->prepare($sqlCaducadas);
+        $stmtCaducadas->execute([':id' => $idUsuario]);
+        $caducadas = $stmtCaducadas->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($caducadas as $g) {
-      if (yaSeEnvio($pdo, $idUsuario, $g['id_garantia'], 'caducada')) {
-        continue;
-      }
+        foreach ($caducadas as $g) {
+            if (yaSeEnvio($pdo, $idUsuario, $g['id_garantia'], 'caducada')) {
+                continue;
+            }
 
-      $nombreUsuario = $usuario['nombre'] ?? 'usuario';
-      $nombreProducto = $g['nombre_producto'] ?? 'tu garantía';
-      $tienda = $g['tienda'] ?? 'No especificada';
-      $fechaVencimiento = date('d/m/Y', strtotime($g['fecha_vencimiento']));
+            $nombreUsuario = $usuario['nombre'] ?? 'usuario';
+            $nombreProducto = $g['nombre_producto'] ?? 'tu garantía';
+            $tienda = $g['tienda'] ?? 'No especificada';
+            $fechaVencimiento = date('d/m/Y', strtotime($g['fecha_vencimiento']));
 
-      $correo = plantillaGarantiaCaducada(
-        $nombreUsuario,
-        $nombreProducto,
-        $tienda,
-        $fechaVencimiento,
-        $enlaceApp
-      );
+            $correo = plantillaGarantiaCaducada(
+                $nombreUsuario,
+                $nombreProducto,
+                $tienda,
+                $fechaVencimiento,
+                $enlaceApp
+            );
 
-      enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
-      registrarEnvio($pdo, $idUsuario, $g['id_garantia'], 'caducada');
-
-      echo "Enviado aviso de garantía caducada a {$usuario['email']} para {$g['nombre_producto']}\n";
+            echo "Enviando aviso de garantía caducada a {$usuario['email']}...<br>";
+            enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
+            registrarEnvio($pdo, $idUsuario, $g['id_garantia'], 'caducada');
+            echo "✅ Enviado.<br>";
+        }
     }
-  }
 
-  if ((int) $usuario['resumen_mensual'] === 1) {
-    $periodo = date('Y-m');
+    if ((int) $usuario['resumen_mensual'] === 1) {
+        $periodo = date('Y-m');
 
-    if (!yaSeEnvio($pdo, $idUsuario, null, 'resumen_mensual', $periodo)) {
-      $stmtResumen = $pdo->prepare("SELECT estado, COUNT(*) total
+        if (!yaSeEnvio($pdo, $idUsuario, null, 'resumen_mensual', $periodo)) {
+            $stmtResumen = $pdo->prepare("SELECT estado, COUNT(*) total
                                           FROM garantias
                                           WHERE id_usuario = :id
                                           GROUP BY estado");
 
-      $stmtResumen->execute([':id' => $idUsuario]);
-      $resumen = $stmtResumen->fetchAll(PDO::FETCH_ASSOC);
+            $stmtResumen->execute([':id' => $idUsuario]);
+            $resumen = $stmtResumen->fetchAll(PDO::FETCH_ASSOC);
 
-      $correo = plantillaResumenMensual(
-        $usuario['nombre'],
-        $resumen,
-        $enlaceApp
-      );
+            $correo = plantillaResumenMensual(
+                $usuario['nombre'],
+                $resumen,
+                $enlaceApp
+            );
 
-      enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
-      registrarEnvio($pdo, $idUsuario, null, 'resumen_mensual', $periodo);
-
-      echo "Enviado resumen mensual a {$usuario['email']}\n";
+            echo "Enviando resumen mensual a {$usuario['email']}...<br>";
+            enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
+            registrarEnvio($pdo, $idUsuario, null, 'resumen_mensual', $periodo);
+            echo "✅ Enviado.<br>";
+        }
     }
-  }
 }
+echo "<br><strong>Proceso finalizado.</strong>";
