@@ -1,8 +1,7 @@
 FROM php:8.2-fpm-alpine
 
-RUN docker-php-ext-install pdo pdo_mysql mysqli
-RUN apk add --no-cache nginx libpng-dev zip curl-dev \
-    && docker-php-ext-install gd zip
+RUN apk add --no-cache nginx libpng-dev libzip-dev zip curl-dev \
+    && docker-php-ext-install pdo pdo_mysql mysqli gd zip
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -13,33 +12,9 @@ RUN composer install --no-dev --optimize-autoloader
 
 RUN mkdir -p /run/nginx
 
-COPY <<'EOF' /etc/nginx/nginx.conf
-events {}
-http {
-    include mime.types;
-    server {
-        listen 80;
-        root /var/www/html;
-        index index.php;
-        location / {
-            try_files $uri $uri/ /index.php?$query_string;
-        }
-        location ~ \.php$ {
-            fastcgi_pass 127.0.0.1:9000;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            include fastcgi_params;
-        }
-    }
-}
-EOF
+RUN printf 'events {}\nhttp {\n    include mime.types;\n    server {\n        listen 80;\n        root /var/www/html;\n        index index.php;\n        location / {\n            try_files $uri $uri/ /index.php?$query_string;\n        }\n        location ~ \\.php$ {\n            fastcgi_pass 127.0.0.1:9000;\n            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n            include fastcgi_params;\n        }\n    }\n}\n' > /etc/nginx/nginx.conf
 
-COPY <<'EOF' /start.sh
-#!/bin/sh
-php-fpm -D
-nginx -g "daemon off;"
-EOF
-
-RUN chmod +x /start.sh
+RUN printf '#!/bin/sh\nphp-fpm -D\nnginx -g "daemon off;"\n' > /start.sh && chmod +x /start.sh
 
 EXPOSE 80
 CMD ["/start.sh"]
