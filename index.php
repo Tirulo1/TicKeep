@@ -18,9 +18,9 @@ try {
     $stmtUser->execute([':id' => $id_usuario]);
     $userData = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
- $ordenSQL = ordenGarantiasSQL($preferencias);
+    $ordenSQL = ordenGarantiasSQL($preferencias);
 
-$queryGarantias = "SELECT * FROM garantias 
+    $queryGarantias = "SELECT * FROM garantias 
                    WHERE id_usuario = :id 
                    ORDER BY $ordenSQL";
     $stmtGarantias = $pdo->prepare($queryGarantias);
@@ -30,7 +30,11 @@ $queryGarantias = "SELECT * FROM garantias
     die("Error: " . $e->getMessage());
 }
 
-$fotoPerfil = !empty($userData['foto_perfil']) ? $userData['foto_perfil'] : 'default-avatar.png';
+$fotoPerfil = 'default-avatar.png';
+
+if (!empty($userData['foto_perfil']) && file_exists('assets/img/' . $userData['foto_perfil'])) {
+    $fotoPerfil = $userData['foto_perfil'];
+}
 
 $garantiasCalendario = [];
 foreach ($garantias as $g) {
@@ -51,8 +55,8 @@ $garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
 ?>
 <!DOCTYPE html>
 <html lang="<?= $preferencias['idioma'] === 'Inglés' ? 'en' : 'es' ?>"
-      data-theme="<?= htmlspecialchars($preferencias['tema']) ?>"
-      data-animations="<?= (int)$preferencias['animaciones_ui'] ?>">
+    data-theme="<?= htmlspecialchars($preferencias['tema']) ?>"
+    data-animations="<?= (int)$preferencias['animaciones_ui'] ?>">
 
 <head>
     <meta charset="UTF-8">
@@ -65,7 +69,7 @@ $garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
     <link rel="stylesheet" href="assets/css/index.css">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/preferencias.css">
-    
+
 </head>
 
 <body class="<?= !empty($preferencias['modo_compacto']) ? 'modo-compacto' : '' ?>">
@@ -187,10 +191,11 @@ $garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
                             if ($status === 'Expira pronto') $badge = 'badge-expira-pronto';
                             if ($status === 'Caducada')      $badge = 'badge-caducada';
 
-                            $imagenMostrar = 'uploads/default.png';
-                            if (!empty($g['foto_producto'])) {
+                            $imagenMostrar = 'assets/img/producto-default.png';
+
+                            if (!empty($g['foto_producto']) && file_exists($g['foto_producto'])) {
                                 $imagenMostrar = $g['foto_producto'];
-                            } elseif (!empty($g['archivo_ticket'])) {
+                            } elseif (!empty($g['archivo_ticket']) && file_exists($g['archivo_ticket'])) {
                                 $imagenMostrar = $g['archivo_ticket'];
                             }
                             ?>
@@ -209,26 +214,26 @@ $garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
                                         <p class="ticket-coments mb-2"><?= htmlspecialchars($g['comentarios']); ?></p>
                                     <?php endif; ?>
                                     <p class="ticket-expiry mb-0">Vence el: <b><?= fechaTickeep($g['fecha_vencimiento'], $preferencias); ?></b>
-                                </p>
-                                <?php if (!empty($preferencias['mostrar_dias_restantes'])): ?>
-    <?php
-    $diasRestantes = diasRestantesGarantia($g['fecha_vencimiento']);
-    ?>
+                                    </p>
+                                    <?php if (!empty($preferencias['mostrar_dias_restantes'])): ?>
+                                        <?php
+                                        $diasRestantes = diasRestantesGarantia($g['fecha_vencimiento']);
+                                        ?>
 
-    <?php if ($diasRestantes > 0): ?>
-        <p class="ticket-expiry mb-0 small">
-            Quedan <b><?= $diasRestantes ?></b> días
-        </p>
-    <?php elseif ($diasRestantes === 0): ?>
-        <p class="ticket-expiry mb-0 small text-warning">
-            Vence hoy
-        </p>
-    <?php else: ?>
-        <p class="ticket-expiry mb-0 small text-danger">
-            Caducó hace <b><?= abs($diasRestantes) ?></b> días
-        </p>
-    <?php endif; ?>
-<?php endif; ?>
+                                        <?php if ($diasRestantes > 0): ?>
+                                            <p class="ticket-expiry mb-0 small">
+                                                Quedan <b><?= $diasRestantes ?></b> días
+                                            </p>
+                                        <?php elseif ($diasRestantes === 0): ?>
+                                            <p class="ticket-expiry mb-0 small text-warning">
+                                                Vence hoy
+                                            </p>
+                                        <?php else: ?>
+                                            <p class="ticket-expiry mb-0 small text-danger">
+                                                Caducó hace <b><?= abs($diasRestantes) ?></b> días
+                                            </p>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
                                 </div>
                                 <a href="detalle.php?id=<?= $g['id_garantia']; ?>" class="tk-btn-details text-decoration-none">Ver detalles</a>
                             </div>

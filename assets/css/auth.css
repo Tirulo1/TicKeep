@@ -1,251 +1,602 @@
 /* =====================================================
-   TicKeep — auth.css
+   TicKeep — CSS fusionado
+   Index propio + Login/Register compañero
    ===================================================== */
 
+/* ===== VARIABLES ===== */
 :root {
-  --tk-blue:        #1D4ED8;
-  --tk-blue-hover:  #1e40af;
-  --tk-dark:        #111827;
-  --tk-muted:       #6B7280;
-  --tk-border:      #E2E6EA;
-  --tk-bg:          #F0F2F5;
+    --tk-dark: #111827;
+    --tk-blue-primary: #1D4ED8;
+    --tk-blue: #1D4ED8;
+    --tk-blue-hover: #1e40af;
+    --tk-blue-light: #EFF6FF;
+    --tk-gray-muted: #6B7280;
+    --tk-muted: #6B7280;
+    --tk-gray-border: #E5E7EB;
+    --tk-border: #E2E6EA;
+    --tk-bg: #F3F4F6;
+    --tk-auth-bg: #F0F2F5;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
-/* ── Body ─────────────────────────────────────── */
+/* =====================================================
+   LOGIN / REGISTRO
+   Se activa solo si el body tiene class="tk-auth-body"
+   ===================================================== */
+
 body.tk-auth-body {
-  background: var(--tk-bg);
-  font-family: 'Poppins', sans-serif;
-  color: var(--tk-dark);
-  min-height: 100vh;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
+    background: var(--tk-auth-bg);
+    font-family: 'Poppins', sans-serif;
+    color: var(--tk-dark);
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
 }
 
-/* ── Card ─────────────────────────────────────── */
 .tk-auth-main {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .tk-auth-card {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.10);
-  padding: 2.75rem 2.5rem;
-  width: 100%;
-  max-width: 460px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.10);
+    padding: 2.75rem 2.5rem;
+    width: 100%;
+    max-width: 460px;
 }
 
-/* ── Logo ─────────────────────────────────────── */
 .tk-auth-logo {
-  text-align: center;
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: var(--tk-blue);
-  letter-spacing: -0.5px;
-  margin-bottom: 0.15rem;
+    text-align: center;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--tk-blue);
+    letter-spacing: -0.5px;
+    margin-bottom: 0.15rem;
 }
 
-/* ── Page title ───────────────────────────────── */
 .tk-auth-page-title {
-  text-align: center;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--tk-dark);
-  margin-bottom: 1.75rem;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--tk-dark);
+    margin-bottom: 1.75rem;
 }
 
-/* ── Labels ───────────────────────────────────── */
 .form-label {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.4rem;
-  display: block;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.4rem;
+    display: block;
 }
 
-/* ── Inputs ───────────────────────────────────── */
 .form-control {
-  width: 100%;
-  border: 1.5px solid var(--tk-border);
-  border-radius: 10px !important;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.95rem;
-  color: var(--tk-dark);
-  background: #fff;
-  padding: 0.75rem 1rem;
-  transition: border-color .2s, box-shadow .2s;
-  outline: none;
+    width: 100%;
+    border: 1.5px solid var(--tk-border);
+    border-radius: 10px !important;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: var(--tk-dark);
+    background: #fff;
+    padding: 0.75rem 1rem;
+    transition: border-color .2s, box-shadow .2s, background-color .2s;
+    outline: none;
 }
-.form-control::placeholder { color: #B0B8C1; }
+
+.form-control::placeholder {
+    color: #B0B8C1;
+}
+
 .form-control:focus {
-  border-color: var(--tk-blue);
-  box-shadow: 0 0 0 3px rgba(29,78,216,.10);
+    border-color: var(--tk-blue);
+    box-shadow: 0 0 0 3px rgba(29,78,216,.10);
+    background-color: #fff;
 }
-.form-control-lg { font-size: 0.95rem !important; padding: 0.75rem 1rem !important; }
 
-/* ── Password wrapper ─────────────────────────── */
+.form-control-lg {
+    font-size: 0.95rem !important;
+    padding: 0.75rem 1rem !important;
+}
+
 .input-pw {
-  position: relative;
+    position: relative;
 }
+
 .input-pw .form-control {
-  padding-right: 3rem;
+    padding-right: 3rem;
 }
+
 .toggle-pw {
-  position: absolute;
-  right: 0.85rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--tk-muted);
-  padding: .2rem;
-  display: flex;
-  align-items: center;
-  transition: color .2s;
-  line-height: 1;
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--tk-muted);
+    padding: .2rem;
+    display: flex;
+    align-items: center;
+    transition: color .2s;
+    line-height: 1;
 }
-.toggle-pw:hover { color: var(--tk-blue); }
 
-/* ── Submit button ────────────────────────────── */
+.toggle-pw:hover {
+    color: var(--tk-blue);
+}
+
 .btn-auth {
-  display: block;
-  width: 100%;
-  background: var(--tk-blue);
-  border: none;
-  border-radius: 10px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  padding: 0.85rem 1.5rem;
-  cursor: pointer;
-  transition: background .2s, transform .15s, box-shadow .2s;
-  box-shadow: 0 2px 10px rgba(29,78,216,.30);
-  margin-top: 0.5rem;
-  text-align: center;
-  text-decoration: none;
+    display: block;
+    width: 100%;
+    background: var(--tk-blue);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    padding: 0.85rem 1.5rem;
+    cursor: pointer;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    box-shadow: 0 2px 10px rgba(29,78,216,.30);
+    margin-top: 0.5rem;
+    text-align: center;
+    text-decoration: none;
 }
+
 .btn-auth:hover {
-  background: var(--tk-blue-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(29,78,216,.38);
-  color: #fff;
+    background: var(--tk-blue-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(29,78,216,.38);
+    color: #fff;
 }
-.btn-auth:active { transform: translateY(0); }
 
-/* ── Spacing ──────────────────────────────────── */
-.mb-f { margin-bottom: 1.1rem; }
+.btn-auth:active {
+    transform: translateY(0);
+}
 
-/* ── Alerts ───────────────────────────────────── */
+.mb-f {
+    margin-bottom: 1.1rem;
+}
+
 .tk-alert {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  border-radius: 10px;
-  font-size: .87rem;
-  padding: .7rem 1rem;
-  margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    border-radius: 10px;
+    font-size: .87rem;
+    padding: .7rem 1rem;
+    margin-bottom: 1rem;
 }
-.tk-alert-danger  { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
-.tk-alert-success { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
-.tk-alert-warning { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
-.tk-alert-info    { background: #EFF6FF; color: #1e40af; border: 1px solid #BFDBFE; }
 
-/* ── Switch link (¿Ya tienes cuenta?) ────────── */
+.tk-alert-danger {
+    background: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+.tk-alert-success {
+    background: #D1FAE5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
+
+.tk-alert-warning {
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+}
+
+.tk-alert-info {
+    background: #EFF6FF;
+    color: #1e40af;
+    border: 1px solid #BFDBFE;
+}
+
 .tk-switch {
-  text-align: center;
-  margin-top: 1.25rem;
-  font-size: .88rem;
-  color: var(--tk-muted);
+    text-align: center;
+    margin-top: 1.25rem;
+    font-size: .88rem;
+    color: var(--tk-muted);
 }
+
 .tk-switch a {
-  color: var(--tk-blue);
-  font-weight: 600;
-  text-decoration: none;
+    color: var(--tk-blue);
+    font-weight: 600;
+    text-decoration: none;
 }
-.tk-switch a:hover { text-decoration: underline; }
 
-/* ── Forgot password link ─────────────────────── */
+.tk-switch a:hover {
+    text-decoration: underline;
+}
+
 .tk-forgot {
-  text-align: right;
-  margin-top: -0.4rem;
-  margin-bottom: 1rem;
+    text-align: right;
+    margin-top: -0.4rem;
+    margin-bottom: 1rem;
 }
+
 .tk-forgot a {
-  font-size: .82rem;
-  color: var(--tk-muted);
-  text-decoration: none;
-}
-.tk-forgot a:hover { color: var(--tk-blue); text-decoration: underline; }
-
-/* ── Responsive ───────────────────────────────── */
-@media (max-width: 480px) {
-  .tk-auth-card { padding: 2rem 1.5rem; }
-  .tk-auth-logo { font-size: 2rem; }
+    font-size: .82rem;
+    color: var(--tk-muted);
+    text-decoration: none;
 }
 
-/* ================================================================
-   ESTILOS DE LA APP PRINCIPAL (header, cards, etc.)
-   ================================================================ */
+.tk-forgot a:hover {
+    color: var(--tk-blue);
+    text-decoration: underline;
+}
+
+/* =====================================================
+   APP PRINCIPAL / INDEX
+   Se aplica cuando NO es login/register
+   ===================================================== */
 
 body:not(.tk-auth-body) {
-  font-family: 'Poppins', sans-serif;
-  background: #F3F4F6;
-  color: #111827;
-  min-height: 100vh;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
+    background-color: var(--tk-bg);
+    font-family: 'Poppins', sans-serif;
+    color: var(--tk-dark);
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
 }
+
+/* ===== HEADER ===== */
 
 .tk-header {
-  background: linear-gradient(135deg, #1D4ED8 0%, #1e3a8a 100%);
-  padding: 1rem 0;
-  box-shadow: 0 2px 8px rgba(29,78,216,.25);
+    background: linear-gradient(135deg, var(--tk-blue-primary) 0%, #1e3a8a 100%);
+    padding: 1rem 0;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(29,78,216,0.25);
 }
+
 .tk-logo {
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.5rem;
-  text-decoration: none;
-  letter-spacing: -0.5px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.5rem;
+    text-decoration: none;
+    letter-spacing: -0.5px;
 }
-.tk-logo:hover { color: #bfdbfe; }
+
+.tk-logo:hover {
+    color: #bfdbfe;
+}
 
 .avatar-img {
-  width: 40px; height: 40px;
-  border-radius: 50%; object-fit: cover;
-  border: 2px solid rgba(255,255,255,.6);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.6);
 }
 
 .tk-btn-logout {
-  display: flex; align-items: center; gap: .4rem;
-  color: rgba(255,255,255,.85);
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.25);
-  border-radius: 50px;
-  padding: .35rem .9rem;
-  font-size: .85rem; font-weight: 500;
-  text-decoration: none;
-  font-family: 'Poppins', sans-serif;
-  transition: background .2s, color .2s;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    color: rgba(255,255,255,.85);
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 50px;
+    padding: .35rem .9rem;
+    font-size: .85rem;
+    font-weight: 500;
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+    transition: background .2s, color .2s;
 }
-.tk-btn-logout:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+.tk-btn-logout:hover {
+    background: rgba(255,255,255,.22);
+    color: #fff;
+}
+
+/* ===== INDEX — TITLE SECTION ===== */
+
+.title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.title-section h2 {
+    color: var(--tk-blue-primary);
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+/* ===== BUTTONS ===== */
+
+.tk-btn-primary {
+    background: linear-gradient(135deg, var(--tk-blue-primary), #2563eb);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 0.55rem 1.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(29,78,216,0.25);
+    transition: opacity 0.2s, transform 0.15s;
+    text-decoration: none;
+}
+
+.tk-btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+.tk-btn-export {
+    background: #E2E8F0;
+    color: #475569;
+    border-radius: 50px;
+    padding: 0.55rem 1.2rem;
+    border: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.tk-btn-export:hover {
+    background: #cbd5e1;
+}
+
+/* ===== SEARCH ===== */
+
+.search-input-wrapper {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1.2rem 0.75rem 3rem;
+    border-radius: 50px;
+    border: 1.5px solid var(--tk-gray-border);
+    background: #fff;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--tk-blue-primary);
+    box-shadow: 0 0 0 3px rgba(29,78,216,0.1);
+}
+
+/* ===== FILTER PILLS ===== */
+
+.filter-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    background: #E2E8F0;
+    color: #475569;
+    padding: 0.35rem 1.1rem;
+    border-radius: 50px;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.filter-pill:hover {
+    background: #cbd5e1;
+}
+
+.filter-pill.active {
+    background: var(--tk-blue-primary);
+    color: #fff;
+}
+
+/* ===== TICKET CARD ===== */
+
+.tk-ticket-card {
+    background: #fff;
+    border: 1px solid var(--tk-gray-border);
+    border-radius: 14px;
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+    transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.tk-ticket-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.ticket-thumb {
+    width: 90px;
+    height: 90px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #f1f5f9;
+}
+
+.ticket-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.ticket-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.store-name {
+    color: var(--tk-blue-primary);
+}
+
+.ticket-coments {
+    color: var(--tk-gray-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ticket-expiry {
+    font-size: 0.82rem;
+    color: #374151;
+}
+
+.tk-btn-details {
+    background: #EFF6FF;
+    color: var(--tk-blue-primary);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.83rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    text-decoration: none;
+}
+
+.tk-btn-details:hover {
+    background: #dbeafe;
+    color: var(--tk-blue-primary);
+}
+
+/* ===== STATUS BADGES ===== */
+
+.status-badge {
+    padding: 0.2rem 0.65rem;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.badge-vigente {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-expira-pronto {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.badge-caducada {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+/* ===== BOOTSTRAP PRIMARY BUTTON GENERAL ===== */
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--tk-blue-primary), #2563eb) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.75rem 1.5rem;
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(29,78,216,0.3);
+}
+
+.btn-primary:hover {
+    opacity: 0.93;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(29,78,216,0.35);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* ===== ALERTS BOOTSTRAP ===== */
+
+.alert {
+    border-radius: 10px;
+    font-size: 0.88rem;
+    padding: 0.65rem 1rem;
+}
+
+/* ===== FOOTER ===== */
 
 .main-footer {
-  background: linear-gradient(135deg, #1D4ED8 0%, #1e3a8a 100%);
-  color: rgba(255,255,255,.9);
-  text-align: center;
-  padding: 1.75rem;
-  margin-top: auto;
-  font-size: .88rem;
+    background: linear-gradient(135deg, var(--tk-blue-primary) 0%, #1e3a8a 100%);
+    color: rgba(255,255,255,0.9);
+    text-align: center;
+    padding: 1.75rem;
+    margin-top: auto;
+    font-size: 0.88rem;
 }
-.x-small { font-size: .78rem; color: rgba(255,255,255,.65); }
+
+.x-small {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.65);
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 576px) {
+    .tk-ticket-card {
+        flex-wrap: wrap;
+    }
+
+    .ticket-thumb {
+        width: 70px;
+        height: 70px;
+    }
+
+    .tk-btn-details {
+        width: 100%;
+        text-align: center;
+    }
+
+    .title-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .tk-auth-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .tk-auth-logo {
+        font-size: 2rem;
+    }
+}
