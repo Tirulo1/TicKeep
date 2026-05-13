@@ -59,7 +59,11 @@ try {
     die("Error: " . $e->getMessage());
 }
 
-$fotoPerfil = !empty($usuario['foto_perfil']) ? $usuario['foto_perfil'] : 'default-avatar.png';
+$fotoPerfil = 'default-avatar.png';
+
+if (!empty($usuario['foto_perfil']) && file_exists(__DIR__ . '/assets/img/' . $usuario['foto_perfil'])) {
+    $fotoPerfil = $usuario['foto_perfil'];
+}
 $temaActual = valor($usuario, 'tema', 'claro');
 $colorActual = valor($usuario, 'color_acento', '#202bbf');
 
