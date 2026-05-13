@@ -1,0 +1,20 @@
+# Variables privadas
+.env
+
+# Dependencias Composer
+/vendor/
+
+# Archivos temporales
+*.log
+*.tmp
+
+# Subidas de usuarios
+/uploads/
+assets/img/perfil_*
+
+# Configuraciones locales
+config/local.php
+
+# Sistema
+.DS_Store
+Thumbs.db

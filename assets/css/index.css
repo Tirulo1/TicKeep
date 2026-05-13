@@ -1,0 +1,90 @@
+/* ===== HEADER LOGOUT BUTTON ===== */
+.tk-btn-logout {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+.tk-btn-logout:hover {
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+}
+
+/* ===== VIEW TABS (Lista / Calendario) ===== */
+.tk-view-tabs {
+    border-bottom: 2px solid #E5E7EB;
+    gap: 0.25rem;
+}
+.tk-view-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.2rem;
+    border: none;
+    background: transparent;
+    color: #6B7280;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+}
+.tk-view-tab:hover { color: #1D4ED8; background: #EFF6FF; }
+.tk-view-tab.active {
+    color: #1D4ED8;
+    background: #EFF6FF;
+    border-bottom: 2px solid #1D4ED8;
+    margin-bottom: -2px;
+}
+
+/* ===== SEARCH ICON ===== */
+.search-input-wrapper { position: relative; }
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9CA3AF;
+    pointer-events: none;
+}
+
+/* ===== CALENDAR ===== */
+#tk-calendar {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: #374151;
+}
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* FullCalendar overrides */
+.fc .fc-button-primary {
+    background-color: #1D4ED8 !important;
+    border-color: #1D4ED8 !important;
+}
+.fc .fc-button-primary:hover {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+}
+.fc .fc-daygrid-event { border-radius: 4px; font-size: 0.78rem; }
+.fc .fc-toolbar-title { font-size: 1.1rem; font-weight: 600; color: #111827; }

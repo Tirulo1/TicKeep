@@ -1,0 +1,53 @@
+ body {
+     background-color: #efefef;
+ }
+
+ .topbar {
+     background: #202bbf;
+     min-height: 70px;
+ }
+
+ .topbar .brand {
+     color: #fff;
+     font-weight: 700;
+     text-decoration: none;
+ }
+
+ .main-card {
+     max-width: 820px;
+     margin: 60px auto;
+     background: #fff;
+     border-radius: 8px;
+     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+     padding: 45px 35px;
+ }
+
+ .icon-box {
+     font-size: 2rem;
+     text-align: center;
+     margin-bottom: 10px;
+ }
+
+ .title-box {
+     text-align: center;
+     font-weight: 700;
+     margin-bottom: 35px;
+ }
+
+ .btn-save {
+     background: #0d7fc0;
+     border: none;
+ }
+
+ .btn-save:hover {
+     background: #0b6da4;
+ }
+
+ footer {
+     background: #202bbf;
+     color: #fff;
+     text-align: center;
+     padding: 18px 10px;
+     margin-top: 80px;
+     font-size: 0.8rem;
+ }
