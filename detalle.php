@@ -163,13 +163,14 @@ if (!empty($garantia['archivo_ticket'])) {
                 <div class="col-md-auto">
                     <?php if ($mostrarImagen): ?>
                         <?php
-                        $imagenDetalle = 'uploads/default.png';
+                    $imagenDetalle = 'assets/img/producto-default.png';
 
-                        if (!empty($garantia['foto_producto'])) {
-                            $imagenDetalle = $garantia['foto_producto'];
-                        } elseif (!empty($garantia['archivo_ticket'])) {
-                            $imagenDetalle = $garantia['archivo_ticket'];
-                        }
+                            if (!empty($g['foto_producto']) && file_exists($g['foto_producto'])) {
+                                $imagenDetalle = $g['foto_producto'];
+                            } elseif (!empty($g['archivo_ticket']) && file_exists($g['archivo_ticket'])) {
+                                $imagenDetalle = $g['archivo_ticket'];
+                            }
+                            ?>
                         ?>
 
                         <img src="<?= htmlspecialchars($imagenDetalle) ?>" alt="Imagen del producto" class="product-image">
