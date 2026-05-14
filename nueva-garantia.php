@@ -3,6 +3,7 @@ session_start();
 require 'config/bd.php';
 require 'gemini_ticket.php';
 require 'includes/preferencias_usuario.php';
+require 'config/lang.php'; // Cargamos las traducciones
 
 if (!isset($_SESSION['id_usuario'])) {
     header('Location: login.php');
@@ -129,10 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($accion === 'guardar_garantia' && $mensaje === '') {
         if ($nombre_producto === '' || $fecha_compra === '' || $fecha_vencimiento === '') {
-            $mensaje = 'Por favor, rellena nombre del producto, fecha de compra y fecha de vencimiento.';
+            $mensaje = $t['error_campos'];
             $tipo_alerta = 'danger';
         } elseif ($fecha_vencimiento < $fecha_compra) {
-            $mensaje = 'La fecha de vencimiento no puede ser anterior a la fecha de compra.';
+            $mensaje = $t['error_fecha'];
             $tipo_alerta = 'danger';
         } else {
             $estado = calcularEstado($fecha_vencimiento);
@@ -174,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nueva garantía - TicKeep</title>
+    <title><?= $t['titulo_nueva'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/preferencias.css">
     <style>
@@ -243,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <nav class="topbar d-flex align-items-center">
     <div class="container d-flex justify-content-between align-items-center">
-        <a href="index.php" class="brand">TicKeep</a>
+        <a href="index.php" class="brand"><?= $t['app_nombre'] ?></a>
         <div class="text-white">
             <?= htmlspecialchars($_SESSION['nombre'] ?? 'Usuario') ?>
         </div>
@@ -253,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
     <div class="main-card">
         <div class="icon-box">📦</div>
-        <h2 class="title-box">Añadir una nueva garantía</h2>
+        <h2 class="title-box"><?= $t['nueva_titulo'] ?></h2>
 
         <?php if ($mensaje !== ''): ?>
             <div class="alert alert-<?= htmlspecialchars($tipo_alerta) ?> text-center">
@@ -266,7 +267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="hidden" name="foto_producto_actual" value="<?= htmlspecialchars($foto_producto) ?>">
 
             <div class="mb-3">
-                <label for="nombre_producto" class="form-label">Nombre del producto *</label>
+                <label for="nombre_producto" class="form-label"><?= $t['nombre_producto'] ?> *</label>
                 <input
                     type="text"
                     class="form-control"
@@ -278,7 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="mb-3">
-                <label for="tienda" class="form-label">Tienda</label>
+                <label for="tienda" class="form-label"><?= $t['tienda'] ?></label>
                 <input
                     type="text"
                     class="form-control"
@@ -290,7 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="fecha_compra" class="form-label">Fecha de compra *</label>
+                    <label for="fecha_compra" class="form-label"><?= $t['fecha_compra'] ?> *</label>
                     <input
                         type="date"
                         class="form-control"
@@ -302,7 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label for="fecha_vencimiento" class="form-label">Fecha de vencimiento *</label>
+                    <label for="fecha_vencimiento" class="form-label"><?= $t['fecha_vencimiento'] ?> *</label>
                     <input
                         type="date"
                         class="form-control"
@@ -315,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="mb-3">
-                <label for="archivo_ticket" class="form-label">Subir ticket</label>
+                <label for="archivo_ticket" class="form-label"><?= $t['subir_ticket'] ?></label>
                 <input
                     type="file"
                     class="form-control"
@@ -324,18 +325,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     accept=".jpg,.jpeg,.png,.webp,.pdf"
                 >
                 <?php if ($archivo_ticket !== ''): ?>
-                    <div class="preview-text">Ticket actual: <?= htmlspecialchars(basename($archivo_ticket)) ?></div>
+                    <div class="preview-text"><?= $t['ticket_actual'] ?> <?= htmlspecialchars(basename($archivo_ticket)) ?></div>
                 <?php endif; ?>
             </div>
 
             <div class="mb-3">
                 <button type="submit" name="accion" value="escanear_ticket" class="btn btn-secondary w-100" formnovalidate>
-                    Escanear ticket
+                    <?= $t['escanear_ticket'] ?>
                 </button>
             </div>
 
             <div class="mb-3">
-                <label for="foto_producto" class="form-label">Seleccionar foto del producto</label>
+                <label for="foto_producto" class="form-label"><?= $t['foto_producto'] ?></label>
                 <input
                     type="file"
                     class="form-control"
@@ -344,12 +345,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     accept=".jpg,.jpeg,.png,.webp"
                 >
                 <?php if ($foto_producto !== ''): ?>
-                    <div class="preview-text">Foto actual: <?= htmlspecialchars(basename($foto_producto)) ?></div>
+                    <div class="preview-text"><?= $t['foto_actual'] ?> <?= htmlspecialchars(basename($foto_producto)) ?></div>
                 <?php endif; ?>
             </div>
 
             <div class="mb-4">
-                <label for="comentarios" class="form-label">Comentarios</label>
+                <label for="comentarios" class="form-label"><?= $t['comentarios'] ?></label>
                 <textarea
                     class="form-control"
                     id="comentarios"
@@ -359,15 +360,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <button type="submit" name="accion" value="guardar_garantia" class="btn btn-save text-white w-100">
-                Añadir producto
+                <?= $t['anadir_producto'] ?>
             </button>
         </form>
     </div>
 </div>
 
 <footer>
-    © 2025 TicKeep. Todos los derechos reservados.<br>
-    Tu tranquilidad, garantizada.
+    <?= $t['footer'] ?><br>
+    <?= $t['footer_sub'] ?>
 </footer>
 
 </body>
