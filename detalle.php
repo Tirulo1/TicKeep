@@ -108,10 +108,24 @@ if ($garantia['estado'] === 'Vigente') {
 }
 
 // Comprobar si el archivo es una imagen
-$mostrarImagen = false;
-if (!empty($garantia['archivo_ticket'])) {
+// Determinar imagen a mostrar: foto_producto > archivo_ticket > default
+$imagenesPermitidas = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+if (!empty($garantia['foto_producto'])) {
+    $rutaImagen = htmlspecialchars($garantia['foto_producto']);
+    $mostrarImagen = true;
+} elseif (!empty($garantia['archivo_ticket'])) {
     $extension = strtolower(pathinfo($garantia['archivo_ticket'], PATHINFO_EXTENSION));
-    $mostrarImagen = in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true);
+    if (in_array($extension, $imagenesPermitidas, true)) {
+        $rutaImagen = htmlspecialchars($garantia['archivo_ticket']);
+        $mostrarImagen = true;
+    } else {
+        $rutaImagen = 'assets/img/producto-default.png';
+        $mostrarImagen = true;
+    }
+} else {
+    $rutaImagen = 'assets/img/producto-default.png';
+    $mostrarImagen = true;
 }
 ?>
 <!DOCTYPE html>
@@ -161,26 +175,8 @@ if (!empty($garantia['archivo_ticket'])) {
 
             <div class="row g-4 align-items-start">
                 <div class="col-md-auto">
-                    <?php if ($mostrarImagen): ?>
-                        <?php
-                    $imagenDetalle = 'assets/img/producto-default.png';
-
-                            if (!empty($g['foto_producto']) && file_exists($g['foto_producto'])) {
-                                $imagenDetalle = $g['foto_producto'];
-                            } elseif (!empty($g['archivo_ticket']) && file_exists($g['archivo_ticket'])) {
-                                $imagenDetalle = $g['archivo_ticket'];
-                            }
-                            ?>
-                        ?>
-
-                        <img src="<?= htmlspecialchars($imagenDetalle) ?>" alt="Imagen del producto" class="product-image">
-                    <?php else: ?>
-                        <div class="product-image d-flex align-items-center justify-content-center">
-                            📦
-                        </div>
-                    <?php endif; ?>
+                    <img src="<?= $rutaImagen ?>" alt="Imagen del producto" class="product-image">
                 </div>
-
                 <div class="col">
                     <h3 class="fw-bold mb-2"><?= htmlspecialchars($garantia['nombre_producto']) ?></h3>
 
