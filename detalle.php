@@ -146,7 +146,7 @@ if (!empty($garantia['foto_producto'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/detalle.css">
     <link rel="stylesheet" href="assets/css/preferencias.css">
-    <link rel="stylesheet" href="assets/css/auth.css">
+    <link rel="stylesheet" href="assets/css/auth.css"> 
 </head>
 
 <body>
