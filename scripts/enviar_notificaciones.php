@@ -27,8 +27,7 @@ function enviarCorreo($mailConfig, $destino, $nombreDestino, $asunto, $html)
     $mail = new PHPMailer(true);
     
     // MODO DEBUG ACTIVADO PARA DETECTAR EL ERROR 504
-    $mail->SMTPDebug = 2;
-    $mail->Debugoutput = 'html';
+  $mail->SMTPDebug = 0;
 
     $mail->isSMTP();
     $mail->Host = $mailConfig['host'];
@@ -466,12 +465,12 @@ foreach ($usuarios as $usuario) {
     $idUsuario = (int) $usuario['id_usuario'];
     
     // FORMATO INTELIGENTE: Convierte "08:50 PM" a "20:50" automáticamente para evitar fallos de cálculo
-    $horaPreferidaRaw = $usuario['hora_recordatorio'] ?: '09:00';
-    $horaPreferida = date('H:i', strtotime($horaPreferidaRaw));
+   $horaPreferidaRaw = $usuario['hora_recordatorio'] ?: '09:00';
+$horaPreferida = substr($horaPreferidaRaw, 0, 5); // coge solo HH:MM
 
-    if ($horaActual < $horaPreferida) {
-        continue;
-    }
+if ($horaActual !== $horaPreferida) {
+    continue;
+}
 
     if ((int) $usuario['aviso_vencimiento'] === 1) {
         $diasAviso = (int) $usuario['dias_aviso'];
