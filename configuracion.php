@@ -83,7 +83,7 @@ try {
 
     $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM opciones_configuracion WHERE id_usuario = :id");
     $stmtCheck->execute([':id' => $id_usuario]);
-    $existeConfiguracion = (int) $stmtCheck->fetchColumn() > 0;
+    $existeConfiguracion = (int)$stmtCheck->fetchColumn() > 0;
 } catch (PDOException $e) {
     die("Error: " . $e->getMessage());
 }
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $notificaciones_email = isset($_POST['notificaciones_email']) ? 1 : 0;
     $notificaciones_app = isset($_POST['notificaciones_app']) ? 1 : 0;
     $aviso_vencimiento = isset($_POST['aviso_vencimiento']) ? 1 : 0;
-    $dias_aviso = (int) ($_POST['dias_aviso'] ?? 30);
+    $dias_aviso = (int)($_POST['dias_aviso'] ?? 30);
     $frecuencia_recordatorio = trim($_POST['frecuencia_recordatorio'] ?? 'una_vez');
     $hora_recordatorio = trim($_POST['hora_recordatorio'] ?? '09:00');
     $notificar_caducadas = isset($_POST['notificar_caducadas']) ? 1 : 0;
@@ -115,12 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tema = trim($_POST['tema'] ?? 'claro');
     $color_acento = trim($_POST['color_acento'] ?? '#202bbf');
     $formato_fecha = trim($_POST['formato_fecha'] ?? 'd/m/Y');
-    $animaciones_ui = (int) valor($usuario, 'animaciones_ui', 1);
+    $animaciones_ui = (int)valor($usuario, 'animaciones_ui', 1);
 
     $orden_garantias = trim($_POST['orden_garantias'] ?? 'fecha_compra_desc');
     $mostrar_dias_restantes = isset($_POST['mostrar_dias_restantes']) ? 1 : 0;
     $confirmar_eliminacion = isset($_POST['confirmar_eliminacion']) ? 1 : 0;
-    $modo_compacto = (int) valor($usuario, 'modo_compacto', 0);
+    $modo_compacto = (int)valor($usuario, 'modo_compacto', 0);
 
     if ($dias_aviso < 1) {
         $dias_aviso = 1;
@@ -406,26 +406,26 @@ if (isset($_GET['guardado'])) {
     }
 }
 
-$notificacionesEmail = (int) valor($usuario, 'notificaciones_email', 1);
-$notificacionesApp = (int) valor($usuario, 'notificaciones_app', 1);
-$avisoVencimiento = (int) valor($usuario, 'aviso_vencimiento', 1);
-$diasAviso = (int) valor($usuario, 'dias_aviso', 30);
+$notificacionesEmail = (int)valor($usuario, 'notificaciones_email', 1);
+$notificacionesApp = (int)valor($usuario, 'notificaciones_app', 1);
+$avisoVencimiento = (int)valor($usuario, 'aviso_vencimiento', 1);
+$diasAviso = (int)valor($usuario, 'dias_aviso', 30);
 $frecuenciaRecordatorio = valor($usuario, 'frecuencia_recordatorio', 'una_vez');
 $horaRecordatorio = valor($usuario, 'hora_recordatorio', '09:00');
-$notificarCaducadas = (int) valor($usuario, 'notificar_caducadas', 0);
-$resumenMensual = (int) valor($usuario, 'resumen_mensual', 0);
+$notificarCaducadas = (int)valor($usuario, 'notificar_caducadas', 0);
+$resumenMensual = (int)valor($usuario, 'resumen_mensual', 0);
 $idiomaActual = valor($usuario, 'idioma', 'Español');
 $formatoFechaActual = valor($usuario, 'formato_fecha', 'd/m/Y');
-$animacionesUI = (int) valor($usuario, 'animaciones_ui', 1);
+$animacionesUI = (int)valor($usuario, 'animaciones_ui', 1);
 $ordenGarantias = valor($usuario, 'orden_garantias', 'fecha_compra_desc');
-$mostrarDiasRestantes = (int) valor($usuario, 'mostrar_dias_restantes', 1);
-$confirmarEliminacion = (int) valor($usuario, 'confirmar_eliminacion', 1);
-$modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
+$mostrarDiasRestantes = (int)valor($usuario, 'mostrar_dias_restantes', 1);
+$confirmarEliminacion = (int)valor($usuario, 'confirmar_eliminacion', 1);
+$modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
 ?>
 <!DOCTYPE html>
 <html lang="<?= $preferencias['idioma'] === 'Inglés' ? 'en' : 'es' ?>"
     data-theme="<?= htmlspecialchars($preferencias['tema']) ?>"
-    data-animations="<?= (int) $preferencias['animaciones_ui'] ?>">
+    data-animations="<?= (int)$preferencias['animaciones_ui'] ?>">
 
 <head>
     <meta charset="UTF-8">
@@ -433,17 +433,12 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
     <link rel="stylesheet" href="assets/css/auth.css">
     <link rel="stylesheet" href="assets/css/preferencias.css">
     <!-- <link rel="stylesheet" href="assets/css/config.css"> -->
-    <style>
+       <style>
         :root {
-            --accent:
-                <?= htmlspecialchars($colorActual) ?>
-            ;
+            --accent: <?= htmlspecialchars($colorActual) ?>;
             --bg: #f3f4f6;
             --card: #ffffff;
             --text: #111827;
@@ -634,9 +629,7 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
             border-color: var(--accent);
         }
 
-        .accent-radio {
-            display: none;
-        }
+        .accent-radio { display: none; }
 
         .accent-option {
             display: inline-flex;
@@ -649,7 +642,7 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
             border: 2.5px solid transparent;
             cursor: pointer;
             transition: transform .15s, box-shadow .15s, border-color .15s;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+            box-shadow: 0 1px 4px rgba(0,0,0,.18);
             position: relative;
             font-size: .78rem;
             font-weight: 600;
@@ -657,28 +650,21 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
             letter-spacing: .01em;
             white-space: nowrap;
         }
-
         .accent-option:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .28);
+            box-shadow: 0 4px 12px rgba(0,0,0,.28);
         }
-
-        .accent-radio:checked+.accent-option {
+        .accent-radio:checked + .accent-option {
             border-color: #fff;
-            box-shadow: 0 0 0 3px rgba(0, 0, 0, .30), 0 2px 8px rgba(0, 0, 0, .2);
+            box-shadow: 0 0 0 3px rgba(0,0,0,.30), 0 2px 8px rgba(0,0,0,.2);
             transform: translateY(-2px);
         }
-
         .accent-option .check-icon {
             display: none;
-            width: 14px;
-            height: 14px;
+            width: 14px; height: 14px;
             flex-shrink: 0;
         }
-
-        .accent-radio:checked+.accent-option .check-icon {
-            display: block;
-        }
+        .accent-radio:checked + .accent-option .check-icon { display: block; }
 
         .btn-save-config {
             background: var(--accent);
@@ -751,8 +737,7 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
             <div class="settings-layout">
                 <aside class="settings-sidebar">
                     <div class="text-center">
-                        <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="sidebar-avatar"
-                            alt="Foto perfil">
+                        <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="sidebar-avatar" alt="Foto perfil">
                         <div class="sidebar-name"><?= htmlspecialchars($usuario['nombre']) ?></div>
                         <div class="sidebar-email"><?= htmlspecialchars($usuario['email']) ?></div>
                     </div>
@@ -769,11 +754,9 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
                 <section class="config-card">
                     <form method="POST" enctype="multipart/form-data">
                         <div class="profile-wrapper">
-                            <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="profile-img"
-                                alt="Foto perfil">
+                            <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="profile-img" alt="Foto perfil">
                             <label for="foto_perfil" class="edit-photo" title="Cambiar foto">✎</label>
-                            <input type="file" id="foto_perfil" name="foto_perfil" accept=".jpg,.jpeg,.png,.webp"
-                                hidden>
+                            <input type="file" id="foto_perfil" name="foto_perfil" accept=".jpg,.jpeg,.png,.webp" hidden>
                         </div>
 
                         <h2 class="page-title"><?= $t['config_titulo'] ?></h2>
@@ -861,8 +844,7 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
                         </div>
 
                         <div class="setting-box" id="bloqueAvisos">
-                            <div
-                                class="form-check form-switch d-flex justify-content-between align-items-center ps-0 mb-3">
+                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 mb-3">
                                 <div>
                                     <label class="form-check-label fw-bold" for="aviso_vencimiento">
                                         <?= $t['aviso_venc'] ?>
@@ -879,23 +861,17 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label"><?= $t['antelacion'] ?></label>
                                     <select name="dias_aviso" id="dias_aviso" class="form-select">
-                                        <option value="7" <?= $diasAviso === 7 ? 'selected' : '' ?>>7 <?= $t['dias'] ?>
-                                        </option>
-                                        <option value="15" <?= $diasAviso === 15 ? 'selected' : '' ?>>15 <?= $t['dias'] ?>
-                                        </option>
-                                        <option value="30" <?= $diasAviso === 30 ? 'selected' : '' ?>>30 <?= $t['dias'] ?>
-                                        </option>
-                                        <option value="60" <?= $diasAviso === 60 ? 'selected' : '' ?>>60 <?= $t['dias'] ?>
-                                        </option>
-                                        <option value="90" <?= $diasAviso === 90 ? 'selected' : '' ?>>90 <?= $t['dias'] ?>
-                                        </option>
+                                        <option value="7" <?= $diasAviso === 7 ? 'selected' : '' ?>>7 <?= $t['dias'] ?></option>
+                                        <option value="15" <?= $diasAviso === 15 ? 'selected' : '' ?>>15 <?= $t['dias'] ?></option>
+                                        <option value="30" <?= $diasAviso === 30 ? 'selected' : '' ?>>30 <?= $t['dias'] ?></option>
+                                        <option value="60" <?= $diasAviso === 60 ? 'selected' : '' ?>>60 <?= $t['dias'] ?></option>
+                                        <option value="90" <?= $diasAviso === 90 ? 'selected' : '' ?>>90 <?= $t['dias'] ?></option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label"><?= $t['frecuencia'] ?></label>
-                                    <select name="frecuencia_recordatorio" id="frecuencia_recordatorio"
-                                        class="form-select">
+                                    <select name="frecuencia_recordatorio" id="frecuencia_recordatorio" class="form-select">
                                         <option value="una_vez" <?= $frecuenciaRecordatorio === 'una_vez' ? 'selected' : '' ?>><?= $t['solo_una_vez'] ?></option>
                                         <option value="semanal" <?= $frecuenciaRecordatorio === 'semanal' ? 'selected' : '' ?>><?= $t['semanal'] ?></option>
                                         <option value="diario" <?= $frecuenciaRecordatorio === 'diario' ? 'selected' : '' ?>><?= $t['diario'] ?></option>
@@ -904,13 +880,12 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
 
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label"><?= $t['hora_aviso'] ?></label>
-                                    <input type="time" name="hora_recordatorio" id="hora_recordatorio"
-                                        class="form-control" value="<?= htmlspecialchars($horaRecordatorio) ?>">
+                                    <input type="time" name="hora_recordatorio" id="hora_recordatorio" class="form-control"
+                                        value="<?= htmlspecialchars($horaRecordatorio) ?>">
                                 </div>
                             </div>
 
-                            <div
-                                class="form-check form-switch d-flex justify-content-between align-items-center ps-0 mb-3">
+                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 mb-3">
                                 <div>
                                     <label class="form-check-label fw-bold" for="notificar_caducadas">
                                         <?= $t['notif_caducadas'] ?>
@@ -943,34 +918,26 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
                             <div class="col-md-4 mb-3">
                                 <label class="form-label"><?= $t['idioma'] ?></label>
                                 <select name="idioma" class="form-select">
-                                    <option value="Español" <?= $idiomaActual === 'Español' ? 'selected' : '' ?>>Español
-                                    </option>
-                                    <option value="Inglés" <?= $idiomaActual === 'Inglés' ? 'selected' : '' ?>>English
-                                    </option>
+                                    <option value="Español" <?= $idiomaActual === 'Español' ? 'selected' : '' ?>>Español</option>
+                                    <option value="Inglés" <?= $idiomaActual === 'Inglés' ? 'selected' : '' ?>>English</option>
                                 </select>
                             </div>
 
                             <div class="col-md-4 mb-3">
                                 <label class="form-label"><?= $t['tema'] ?></label>
                                 <select name="tema" id="tema" class="form-select">
-                                    <option value="claro" <?= $temaActual === 'claro' ? 'selected' : '' ?>>
-                                        <?= $t['tema_claro'] ?></option>
-                                    <option value="oscuro" <?= $temaActual === 'oscuro' ? 'selected' : '' ?>>
-                                        <?= $t['tema_oscuro'] ?></option>
-                                    <option value="sistema" <?= $temaActual === 'sistema' ? 'selected' : '' ?>>
-                                        <?= $t['tema_sistema'] ?></option>
+                                    <option value="claro" <?= $temaActual === 'claro' ? 'selected' : '' ?>><?= $t['tema_claro'] ?></option>
+                                    <option value="oscuro" <?= $temaActual === 'oscuro' ? 'selected' : '' ?>><?= $t['tema_oscuro'] ?></option>
+                                    <option value="sistema" <?= $temaActual === 'sistema' ? 'selected' : '' ?>><?= $t['tema_sistema'] ?></option>
                                 </select>
                             </div>
 
                             <div class="col-md-4 mb-3">
                                 <label class="form-label"><?= $t['formato_fecha'] ?></label>
                                 <select name="formato_fecha" class="form-select">
-                                    <option value="d/m/Y" <?= $formatoFechaActual === 'd/m/Y' ? 'selected' : '' ?>>
-                                        31/12/2026</option>
-                                    <option value="Y-m-d" <?= $formatoFechaActual === 'Y-m-d' ? 'selected' : '' ?>>
-                                        2026-12-31</option>
-                                    <option value="m/d/Y" <?= $formatoFechaActual === 'm/d/Y' ? 'selected' : '' ?>>
-                                        12/31/2026</option>
+                                    <option value="d/m/Y" <?= $formatoFechaActual === 'd/m/Y' ? 'selected' : '' ?>>31/12/2026</option>
+                                    <option value="Y-m-d" <?= $formatoFechaActual === 'Y-m-d' ? 'selected' : '' ?>>2026-12-31</option>
+                                    <option value="m/d/Y" <?= $formatoFechaActual === 'm/d/Y' ? 'selected' : '' ?>>12/31/2026</option>
                                 </select>
                             </div>
                         </div>
@@ -981,14 +948,12 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
                                 <?php
                                 $colores = ['#202bbf', '#0d7fc0', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#111827'];
                                 foreach ($colores as $color):
-                                    ?>
+                                ?>
                                     <label>
-                                        <input class="accent-radio" type="radio" name="color_acento"
-                                            value="<?= htmlspecialchars($color) ?>"
+                                        <input class="accent-radio" type="radio" name="color_acento" value="<?= htmlspecialchars($color) ?>"
                                             <?= strtolower($colorActual) === strtolower($color) ? 'checked' : '' ?>>
                                         <span class="accent-option" style="background:<?= htmlspecialchars($color) ?>">
-                                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="white"
-                                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                                 <polyline points="20 6 9 17 4 12" />
                                             </svg>
                                         </span>
@@ -1006,10 +971,8 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
                                 <option value="fecha_compra_asc" <?= $ordenGarantias === 'fecha_compra_asc' ? 'selected' : '' ?>><?= $t['orden_compra_asc'] ?></option>
                                 <option value="fecha_vencimiento_asc" <?= $ordenGarantias === 'fecha_vencimiento_asc' ? 'selected' : '' ?>><?= $t['orden_venc_asc'] ?></option>
                                 <option value="fecha_vencimiento_desc" <?= $ordenGarantias === 'fecha_vencimiento_desc' ? 'selected' : '' ?>><?= $t['orden_venc_desc'] ?></option>
-                                <option value="nombre_asc" <?= $ordenGarantias === 'nombre_asc' ? 'selected' : '' ?>>
-                                    <?= $t['orden_nombre_asc'] ?></option>
-                                <option value="nombre_desc" <?= $ordenGarantias === 'nombre_desc' ? 'selected' : '' ?>>
-                                    <?= $t['orden_nombre_desc'] ?></option>
+                                <option value="nombre_asc" <?= $ordenGarantias === 'nombre_asc' ? 'selected' : '' ?>><?= $t['orden_nombre_asc'] ?></option>
+                                <option value="nombre_desc" <?= $ordenGarantias === 'nombre_desc' ? 'selected' : '' ?>><?= $t['orden_nombre_desc'] ?></option>
                             </select>
                         </div>
 
@@ -1101,7 +1064,7 @@ $modoCompacto = (int) valor($usuario, 'modo_compacto', 0);
         }
 
         const temaSelect = document.getElementById('tema');
-        temaSelect.addEventListener('change', function () {
+        temaSelect.addEventListener('change', function() {
             aplicarTema(this.value);
         });
 
