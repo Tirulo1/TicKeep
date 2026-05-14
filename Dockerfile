@@ -12,11 +12,13 @@ RUN composer install --no-dev --optimize-autoloader
 
 RUN mkdir -p /run/nginx
 
-RUN printf 'events {}\nhttp {\n    include mime.types;\n    fastcgi_read_timeout 300;\n    server {\n        listen 80;\n        root /var/www/html;\n        index index.php;\n        location / {\n            try_files $uri $uri/ /index.php?$query_string;\n        }\n        location ~ \\.php$ {\n            fastcgi_pass 127.0.0.1:9000;\n            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n            fastcgi_read_timeout 300;\n            include fastcgi_params;\n        }\n    }\n}\n' > /etc/nginx/nginx.conf
+RUN printf 'events {}\nhttp {\n    client_max_body_size 20M;\n    include mime.types;\n    fastcgi_read_timeout 300;\n    server {\n        listen 80;\n        root /var/www/html;\n        index index.php;\n        location / {\n            try_files $uri $uri/ /index.php?$query_string;\n        }\n        location ~ \\.php$ {\n            fastcgi_pass 127.0.0.1:9000;\n            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n            fastcgi_read_timeout 300;\n            include fastcgi_params;\n        }\n    }\n}\n' > /etc/nginx/nginx.conf
 
 RUN echo "request_terminate_timeout = 300" >> /usr/local/etc/php-fpm.d/www.conf
 
 RUN printf '#!/bin/sh\nphp-fpm -D\nnginx -g "daemon off;"\n' > /start.sh && chmod +x /start.sh
 
+RUN echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 20M" >> /usr/local/etc/php/conf.d/uploads.ini
 EXPOSE 80
 CMD ["/start.sh"]
