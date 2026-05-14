@@ -10,7 +10,7 @@ $traducciones = [
         'editar'                => 'Editar',
         'borrar'                => 'Borrar',
         'cerrar_sesion'         => 'Cerrar sesión',
-        'footer'                => '© 2025 TicKeep. Todos los derechos reservados.',
+        'footer'                => '© 2026 TicKeep. Todos los derechos reservados.',
         'footer_sub'            => 'Tu tranquilidad, garantizada.',
 
         // Index
@@ -146,7 +146,7 @@ $traducciones = [
         'editar'                => 'Edit',
         'borrar'                => 'Delete',
         'cerrar_sesion'         => 'Sign out',
-        'footer'                => '© 2025 TicKeep. All rights reserved.',
+        'footer'                => '© 2026 TicKeep. All rights reserved.',
         'footer_sub'            => 'Your peace of mind, guaranteed.',
 
         // Index
