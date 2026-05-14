@@ -180,67 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title><?= $t['titulo_nueva'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/preferencias.css">
-    <style>
-        body {
-            background-color: #efefef;
-        }
-
-        .topbar {
-            background: #202bbf;
-            min-height: 70px;
-        }
-
-        .topbar .brand {
-            color: #fff;
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        .main-card {
-            max-width: 820px;
-            margin: 60px auto;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-            padding: 45px 35px;
-        }
-
-        .icon-box {
-            font-size: 2rem;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .title-box {
-            text-align: center;
-            font-weight: 700;
-            margin-bottom: 35px;
-        }
-
-        .btn-save {
-            background: #0d7fc0;
-            border: none;
-        }
-
-        .btn-save:hover {
-            background: #0b6da4;
-        }
-
-        footer {
-            background: #202bbf;
-            color: #fff;
-            text-align: center;
-            padding: 18px 10px;
-            margin-top: 80px;
-            font-size: 0.8rem;
-        }
-
-        .preview-text {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 6px;
-        }
-    </style>
+   <link rel="stylesheet" href="assets/css/nueva-garantia.css">
 </head>
 
 <body>
