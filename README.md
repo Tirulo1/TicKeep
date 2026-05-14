@@ -1,4 +1,4 @@
-# TicKeep 
+# TicKeep
 
 ##  Descripción
 TicKeep es una plataforma web diseñada para permitir a los usuarios registrar, consultar y administrar sus tickets de compra y garantías de manera eficiente, intuitiva y accesible. El objetivo principal es simplificar la gestión documental personal, evitando la pérdida de información y asegurando que el usuario pueda ejercer sus derechos de garantía.
