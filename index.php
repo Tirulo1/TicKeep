@@ -2,10 +2,9 @@
 session_start();
 require 'config/bd.php';
 require 'includes/preferencias_usuario.php';
-require 'config/lang.php';
 
 if (!isset($_SESSION['id_usuario'])) {
-    header('Location: login.php');
+    header("Location: login.php");
     exit();
 }
 
@@ -14,18 +13,27 @@ $id_usuario = $_SESSION['id_usuario'];
 function rutaFotoPerfil($fotoPerfil)
 {
     $default = 'assets/img/default-avatar.png';
-    if (empty($fotoPerfil)) return $default;
+
+    if (empty($fotoPerfil)) {
+        return $default;
+    }
+
     $fotoPerfil = trim($fotoPerfil);
     $posiblesRutas = [];
+
     if (str_contains($fotoPerfil, '/')) {
         $posiblesRutas[] = $fotoPerfil;
     } else {
         $posiblesRutas[] = 'assets/img/' . $fotoPerfil;
         $posiblesRutas[] = 'uploads/perfiles/' . $fotoPerfil;
     }
+
     foreach ($posiblesRutas as $ruta) {
-        if (file_exists(__DIR__ . '/' . $ruta)) return $ruta;
+        if (file_exists(__DIR__ . '/' . $ruta)) {
+            return $ruta;
+        }
     }
+
     return $default;
 }
 
@@ -39,7 +47,9 @@ try {
 
     $ordenSQL = ordenGarantiasSQL($preferencias);
 
-    $queryGarantias = "SELECT * FROM garantias WHERE id_usuario = :id ORDER BY $ordenSQL";
+    $queryGarantias = "SELECT * FROM garantias 
+                   WHERE id_usuario = :id 
+                   ORDER BY $ordenSQL";
     $stmtGarantias = $pdo->prepare($queryGarantias);
     $stmtGarantias->execute([':id' => $id_usuario]);
     $garantias = $stmtGarantias->fetchAll(PDO::FETCH_ASSOC);
@@ -54,7 +64,8 @@ foreach ($garantias as $g) {
     $estado = $g['estado'] ?? 'Vigente';
     $color = '#16a34a';
     if ($estado === 'Expira pronto') $color = '#d97706';
-    if ($estado === 'Caducada')      $color = '#dc2626';
+    if ($estado === 'Caducada')     $color = '#dc2626';
+
     $garantiasCalendario[] = [
         'title'         => $g['nombre_producto'],
         'start'         => $g['fecha_vencimiento'],
@@ -64,18 +75,16 @@ foreach ($garantias as $g) {
     ];
 }
 $garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
-
-$numGarantias = count($garantias);
-$labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantias_registradas'];
 ?>
 <!DOCTYPE html>
 <html lang="<?= $preferencias['idioma'] === 'Inglés' ? 'en' : 'es' ?>"
     data-theme="<?= htmlspecialchars($preferencias['tema']) ?>"
     data-animations="<?= (int)$preferencias['animaciones_ui'] ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TicKeep | <?= $t['mis_garantias'] ?></title>
+    <title>TicKeep | Mis Garantías</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -83,22 +92,24 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
     <link rel="stylesheet" href="assets/css/index.css">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/preferencias.css">
+
 </head>
+
 <body class="<?= !empty($preferencias['modo_compacto']) ? 'modo-compacto' : '' ?>">
 
     <header class="tk-header">
         <div class="container d-flex justify-content-between align-items-center">
             <a href="index.php" class="tk-logo">TicKeep</a>
             <div class="d-flex align-items-center gap-3">
-                <span class="text-white d-none d-sm-block fw-500"><?= htmlspecialchars($userData['nombre']) ?></span>
+                <span class="text-white d-none d-sm-block fw-500"><?= htmlspecialchars($userData['nombre']); ?></span>
                 <a href="configuracion.php">
-                    <img src="<?= htmlspecialchars($fotoPerfil) ?>?v=<?= time() ?>" class="avatar-img" alt="Perfil">
+                    <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="avatar-img" alt="Perfil">
                 </a>
-                <a href="logout.php" class="tk-btn-logout" title="<?= $t['salir'] ?>">
+                <a href="logout.php" class="tk-btn-logout" title="Cerrar sesión">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    <span class="d-none d-md-inline"><?= $t['salir'] ?></span>
+                    <span class="d-none d-md-inline">Salir</span>
                 </a>
             </div>
         </div>
@@ -108,24 +119,48 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
 
         <section class="title-section mb-4">
             <div>
-                <h2 class="mb-0"><?= $t['mis_garantias'] ?></h2>
-                <p class="text-muted small mb-0"><?= $numGarantias ?> <?= $labelGarantias ?></p>
+                <h2 class="mb-0">Mis garantías</h2>
+                <p class="text-muted small mb-0"><?= count($garantias) ?> garantía<?= count($garantias) !== 1 ? 's' : '' ?> registrada<?= count($garantias) !== 1 ? 's' : '' ?></p>
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 <div class="dropdown">
-                    <button class="tk-btn-export d-flex align-items-center gap-1 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        <?= $t['exportar'] ?>
-                    </button>
+                    <div class="dropdown">
+                        <button class="tk-btn-export d-flex align-items-center gap-1 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Exportar
+                        </button>
+
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="exportar_garantias_pdf.php">
+                                    Exportar a PDF
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="exportar_garantias_excel.php">
+                                    Exportar a Excel
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="exportar_garantias_pdf.php"><?= $t['exportar_pdf'] ?></a></li>
-                        <li><a class="dropdown-item" href="exportar_garantias_excel.php"><?= $t['exportar_excel'] ?></a></li>
+                        <li>
+                            <a class="dropdown-item" href="exportar_garantias_pdf.php">
+                                Exportar a PDF
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="exportar_garantias_excel.php">
+                                Exportar a Excel
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <a href="nueva-garantia.php" class="tk-btn-primary text-decoration-none d-flex align-items-center gap-1">
-                    <?= $t['nueva_garantia'] ?>
+                    <span>+</span> Nueva garantía
                 </a>
             </div>
         </section>
@@ -136,7 +171,7 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                     </svg>
-                    <?= $t['lista'] ?>
+                    Lista
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -147,25 +182,27 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
                         <line x1="8" y1="2" x2="8" y2="6" />
                         <line x1="3" y1="10" x2="21" y2="10" />
                     </svg>
-                    <?= $t['calendario'] ?>
+                    Calendario
                 </button>
             </li>
         </ul>
 
         <div class="tab-content">
+
             <div class="tab-pane fade show active" id="tab-lista" role="tabpanel">
                 <section class="search-input-wrapper mb-3">
                     <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
                     </svg>
-                    <input type="text" id="searchInput" class="search-input" placeholder="<?= $t['buscar'] ?>">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por producto o tienda...">
                 </section>
 
                 <section class="filter-pills mb-4">
-                    <button class="filter-pill active" data-filter="Todo"><?= $t['filtro_todo'] ?></button>
-                    <button class="filter-pill" data-filter="Vigente"><?= $t['filtro_vigente'] ?></button>
-                    <button class="filter-pill" data-filter="Expira pronto"><?= $t['filtro_expira'] ?></button>
-                    <button class="filter-pill" data-filter="Caducada"><?= $t['filtro_caducada'] ?></button>
+                    <button class="filter-pill active" data-filter="Todo">Todo</button>
+                    <button class="filter-pill" data-filter="Vigente">Vigente</button>
+                    <button class="filter-pill" data-filter="Expira pronto">Próximo a vencer</button>
+                    <button class="filter-pill" data-filter="Caducada">Caducada</button>
                 </section>
 
                 <section id="garantias-list">
@@ -177,11 +214,8 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
                             if ($status === 'Expira pronto') $badge = 'badge-expira-pronto';
                             if ($status === 'Caducada')      $badge = 'badge-caducada';
 
-                            $statusLabel = $t['vigente'];
-                            if ($status === 'Expira pronto') $statusLabel = $t['expira_pronto'];
-                            if ($status === 'Caducada')      $statusLabel = $t['caducada'];
-
                             $imagenMostrar = 'assets/img/producto-default.png';
+
                             if (!empty($g['foto_producto']) && file_exists($g['foto_producto'])) {
                                 $imagenMostrar = $g['foto_producto'];
                             } elseif (!empty($g['archivo_ticket']) && file_exists($g['archivo_ticket'])) {
@@ -195,46 +229,56 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
                                 <img src="<?= htmlspecialchars($imagenMostrar) ?>" class="ticket-thumb" alt="Producto">
                                 <div class="ticket-info">
                                     <div class="ticket-header">
-                                        <h3 class="ticket-title"><?= htmlspecialchars($g['nombre_producto']) ?></h3>
-                                        <span class="status-badge <?= $badge ?>"><?= $statusLabel ?></span>
+                                        <h3 class="ticket-title"><?= htmlspecialchars($g['nombre_producto']); ?></h3>
+                                        <span class="status-badge <?= $badge ?>"><?= $status ?></span>
                                     </div>
-                                    <p class="mb-1 small"><?= $t['comprado_en'] ?> <span class="store-name fw-bold"><?= htmlspecialchars($g['tienda']) ?></span></p>
+                                    <p class="mb-1 small">Comprado en: <span class="store-name fw-bold"><?= htmlspecialchars($g['tienda']); ?></span></p>
                                     <?php if (!empty($g['comentarios'])): ?>
-                                        <p class="ticket-coments mb-2"><?= htmlspecialchars($g['comentarios']) ?></p>
+                                        <p class="ticket-coments mb-2"><?= htmlspecialchars($g['comentarios']); ?></p>
                                     <?php endif; ?>
-                                    <p class="ticket-expiry mb-0"><?= $t['vence_el'] ?> <b><?= fechaTickeep($g['fecha_vencimiento'], $preferencias) ?></b></p>
+                                    <p class="ticket-expiry mb-0">Vence el: <b><?= fechaTickeep($g['fecha_vencimiento'], $preferencias); ?></b>
+                                    </p>
                                     <?php if (!empty($preferencias['mostrar_dias_restantes'])): ?>
-                                        <?php $diasRestantes = diasRestantesGarantia($g['fecha_vencimiento']); ?>
+                                        <?php
+                                        $diasRestantes = diasRestantesGarantia($g['fecha_vencimiento']);
+                                        ?>
+
                                         <?php if ($diasRestantes > 0): ?>
-                                            <p class="ticket-expiry mb-0 small"><?= $t['quedan'] ?> <b><?= $diasRestantes ?></b> <?= $t['dias'] ?></p>
+                                            <p class="ticket-expiry mb-0 small">
+                                                Quedan <b><?= $diasRestantes ?></b> días
+                                            </p>
                                         <?php elseif ($diasRestantes === 0): ?>
-                                            <p class="ticket-expiry mb-0 small text-warning"><?= $t['vence_hoy'] ?></p>
+                                            <p class="ticket-expiry mb-0 small text-warning">
+                                                Vence hoy
+                                            </p>
                                         <?php else: ?>
-                                            <p class="ticket-expiry mb-0 small text-danger"><?= $t['caduco_hace'] ?> <b><?= abs($diasRestantes) ?></b> <?= $t['dias'] ?></p>
+                                            <p class="ticket-expiry mb-0 small text-danger">
+                                                Caducó hace <b><?= abs($diasRestantes) ?></b> días
+                                            </p>
                                         <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
-                                <a href="detalle.php?id=<?= $g['id_garantia'] ?>" class="tk-btn-details text-decoration-none"><?= $t['ver_detalles'] ?></a>
+                                <a href="detalle.php?id=<?= $g['id_garantia']; ?>" class="tk-btn-details text-decoration-none">Ver detalles</a>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <div class="empty-state text-center py-5">
                             <div style="font-size:3rem">📋</div>
-                            <p class="text-muted mt-3"><?= $t['sin_garantias'] ?></p>
-                            <a href="nueva-garantia.php" class="tk-btn-primary text-decoration-none mt-2 d-inline-block"><?= $t['anadir_primera'] ?></a>
+                            <p class="text-muted mt-3">No tienes garantías registradas aún.</p>
+                            <a href="nueva-garantia.php" class="tk-btn-primary text-decoration-none mt-2 d-inline-block">+ Añadir primera garantía</a>
                         </div>
                     <?php endif; ?>
                     <div id="no-results" class="text-center py-5 d-none">
-                        <p class="text-muted"><?= $t['sin_resultados'] ?></p>
+                        <p class="text-muted">No se encontraron garantías con ese criterio.</p>
                     </div>
                 </section>
             </div>
 
             <div class="tab-pane fade" id="tab-calendario" role="tabpanel">
                 <div class="calendar-legend mb-3 d-flex gap-3 flex-wrap">
-                    <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span><?= $t['vigente'] ?></span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#d97706"></span><?= $t['expira_pronto'] ?></span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span><?= $t['caducada'] ?></span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>Vigente</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#d97706"></span>Expira pronto</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>Caducada</span>
                 </div>
                 <div id="tk-calendar"></div>
             </div>
@@ -242,18 +286,18 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
     </main>
 
     <footer class="main-footer">
-        <p class="mb-1"><?= $t['footer'] ?></p>
-        <p class="mb-0 x-small fw-light"><?= $t['footer_sub'] ?></p>
+        <p class="mb-1">© 2026 TicKeep. Todos los derechos reservados.</p>
+        <p class="mb-0 x-small fw-light">Tu tranquilidad, garantizada.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <script>
         const searchInput = document.getElementById('searchInput');
-        const filterBtns  = document.querySelectorAll('.filter-pill');
-        const cards       = document.querySelectorAll('.tk-ticket-card');
-        const noResults   = document.getElementById('no-results');
-        let activeFilter  = 'Todo';
+        const filterBtns = document.querySelectorAll('.filter-pill');
+        const cards = document.querySelectorAll('.tk-ticket-card');
+        const noResults = document.getElementById('no-results');
+        let activeFilter = 'Todo';
 
         function applyFilters() {
             const q = searchInput.value.toLowerCase().trim();
@@ -282,9 +326,18 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
             window._calInit = true;
             const cal = new FullCalendar.Calendar(document.getElementById('tk-calendar'), {
                 initialView: 'dayGridMonth',
-                locale: '<?= $idiomaActivo ?>',
+                locale: 'es',
                 height: 'auto',
-                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listMonth'
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    list: 'Lista'
+                },
                 events: <?= $garantiasJson ?>,
                 eventClick(info) {
                     info.jsEvent.preventDefault();
@@ -298,4 +351,5 @@ $labelGarantias = $numGarantias === 1 ? $t['garantia_registrada'] : $t['garantia
         });
     </script>
 </body>
+
 </html>
