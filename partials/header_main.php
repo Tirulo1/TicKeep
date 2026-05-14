@@ -11,7 +11,7 @@ if (!isset($userData['nombre'])) {
 ?>
 <header class="tk-header" style="position:sticky;top:0;z-index:999;">
     <div class="container d-flex justify-content-between align-items-center">
-        <a href="index.php" class="tk-logo"><?= $t['app_nombre'] ?></a>
+        <a href="mis_garantias.php" class="tk-logo"><?= $t['app_nombre'] ?></a>
         <div class="d-flex align-items-center gap-3">
             <span class="text-white d-none d-sm-block fw-500">
                 <?= htmlspecialchars($userData['nombre']) ?>

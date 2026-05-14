@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':estado' => $estado
                 ]);
 
-                header('Location: index.php');
+                header('Location: mis_garantias.php');
                 exit();
             } catch (PDOException $e) {
                 $mensaje = 'Error al guardar la garantía: ' . $e->getMessage();

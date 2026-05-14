@@ -13,7 +13,7 @@ $id_usuario = $_SESSION['id_usuario'];
 $id_garantia = $_GET['id'] ?? null;
 
 if (!$id_garantia) {
-    header("Location: index.php");
+    header("Location:  mis_garantias.php");
     exit();
 }
 
@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // --- CÁLCULO DEL NUEVO ESTADO SEGÚN LA FECHA DE VENCIMIENTO ---
     $hoy = new DateTime();
     $vencimiento = new DateTime($fecha_vencimiento);
-    $diferencia = (int)$hoy->diff($vencimiento)->format('%r%a');
+    $diferencia = (int) $hoy->diff($vencimiento)->format('%r%a');
 
     if ($diferencia < 0) {
         $estado_actualizado = 'Caducada';
@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ':user' => $id_usuario
         ]);
 
-        header("Location: index.php");
+        header("Location: mis_garantias.php");
         exit();
     } catch (PDOException $e) {
         $mensaje = "Error al actualizar.";
@@ -94,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <!DOCTYPE html>
 <html lang="<?= $preferencias['idioma'] === 'Inglés' ? 'en' : 'es' ?>"
     data-theme="<?= htmlspecialchars($preferencias['tema']) ?>"
-    data-animations="<?= (int)$preferencias['animaciones_ui'] ?>">
+    data-animations="<?= (int) $preferencias['animaciones_ui'] ?>">
 
 <head>
     <meta charset="UTF-8">
@@ -153,7 +153,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 <div class="mb-4">
                     <label class="form-label"><?= $t['comentarios'] ?></label>
-                    <textarea class="form-control" name="comentarios" rows="4"><?= htmlspecialchars($garantia['comentarios'] ?? '') ?></textarea>
+                    <textarea class="form-control" name="comentarios"
+                        rows="4"><?= htmlspecialchars($garantia['comentarios'] ?? '') ?></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-save text-white w-100">

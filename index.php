@@ -1,362 +1,430 @@
 <?php
 session_start();
-require 'config/bd.php';
-require 'includes/preferencias_usuario.php';
-require 'config/lang.php'; // Cargamos las traducciones
 
-if (!isset($_SESSION['id_usuario'])) {
-    header("Location: login.php");
+// Si el usuario ya tiene sesión iniciada, lo mandamos directo a su panel
+if (isset($_SESSION['id_usuario'])) {
+    header('Location: mis_garantias.php');
     exit();
 }
-
-$id_usuario = $_SESSION['id_usuario'];
-
-function rutaFotoPerfil($fotoPerfil)
-{
-    $default = 'assets/img/default-avatar.png';
-
-    if (empty($fotoPerfil)) {
-        return $default;
-    }
-
-    $fotoPerfil = trim($fotoPerfil);
-    $posiblesRutas = [];
-
-    if (str_contains($fotoPerfil, '/')) {
-        $posiblesRutas[] = $fotoPerfil;
-    } else {
-        $posiblesRutas[] = 'assets/img/' . $fotoPerfil;
-        $posiblesRutas[] = 'uploads/perfiles/' . $fotoPerfil;
-    }
-
-    foreach ($posiblesRutas as $ruta) {
-        if (file_exists(__DIR__ . '/' . $ruta)) {
-            return $ruta;
-        }
-    }
-
-    return $default;
-}
-
-try {
-    $queryUser = "SELECT u.nombre, c.foto_perfil FROM usuarios u 
-                  LEFT JOIN opciones_configuracion c ON u.id_usuario = c.id_usuario 
-                  WHERE u.id_usuario = :id";
-    $stmtUser = $pdo->prepare($queryUser);
-    $stmtUser->execute([':id' => $id_usuario]);
-    $userData = $stmtUser->fetch(PDO::FETCH_ASSOC);
-
-    $ordenSQL = ordenGarantiasSQL($preferencias);
-
-    $queryGarantias = "SELECT * FROM garantias 
-                   WHERE id_usuario = :id 
-                   ORDER BY $ordenSQL";
-    $stmtGarantias = $pdo->prepare($queryGarantias);
-    $stmtGarantias->execute([':id' => $id_usuario]);
-    $garantias = $stmtGarantias->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Error: " . $e->getMessage());
-}
-
-$fotoPerfil = rutaFotoPerfil($userData['foto_perfil'] ?? null);
-
-$garantiasCalendario = [];
-foreach ($garantias as $g) {
-    $estado = $g['estado'] ?? 'Vigente';
-    $color = '#16a34a';
-    $estadoTraducido = $estado;
-
-    if ($estado === 'Vigente') {
-        $color = '#16a34a';
-        $estadoTraducido = $t['vigente'];
-    }
-    if ($estado === 'Expira pronto') {
-        $color = '#d97706';
-        $estadoTraducido = $t['expira_pronto'];
-    }
-    if ($estado === 'Caducada') {
-        $color = '#dc2626';
-        $estadoTraducido = $t['caducada'];
-    }
-
-    $garantiasCalendario[] = [
-        'title'         => $g['nombre_producto'],
-        'start'         => $g['fecha_vencimiento'],
-        'color'         => $color,
-        'url'           => 'detalle.php?id=' . $g['id_garantia'],
-        'extendedProps' => ['tienda' => $g['tienda'], 'estado' => $estadoTraducido],
-    ];
-}
-$garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
 ?>
 <!DOCTYPE html>
-<html lang="<?= $preferencias['idioma'] === 'Inglés' ? 'en' : 'es' ?>"
-    data-theme="<?= htmlspecialchars($preferencias['tema']) ?>"
-    data-animations="<?= (int)$preferencias['animaciones_ui'] ?>">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $t['app_nombre'] ?> | <?= $t['mis_garantias'] ?></title>
+    <title>TicKeep - Nunca Más Pierdas una Garantía</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/auth.css">
-    <link rel="stylesheet" href="assets/css/index.css">
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/preferencias.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --tk-blue: #202bbf;
+            --tk-blue-dark: #161e87;
+            --tk-blue-soft: #eff2ff;
+            --tk-dark: #0f172a;
+            --tk-muted: #64748b;
+            --bg-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--tk-dark);
+            overflow-x: hidden;
+        }
+
+        /* --- Animaciones de entrada --- */
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- ANIMACIÓN DEL FONDO AZUL --- */
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .anim-fade-up {
+            animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .anim-delay-1 {
+            animation-delay: 0.1s;
+            opacity: 0;
+        }
+
+        .anim-delay-2 {
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        /* --- Navbar Blanca Fija --- */
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 18px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            color: var(--tk-blue) !important;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+            transition: transform 0.2s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.02);
+        }
+
+        /* Botones Navbar */
+        .btn-outline-custom {
+            color: var(--tk-dark);
+            border: 1.5px solid #e2e8f0;
+            border-radius: 50px;
+            padding: 8px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-outline-custom:hover {
+            border-color: var(--tk-blue);
+            color: var(--tk-blue);
+            background-color: var(--tk-blue-soft);
+        }
+
+        .btn-solid-custom {
+            background-color: var(--tk-blue);
+            color: white;
+            border-radius: 50px;
+            padding: 9px 28px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            transition: all 0.3s;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(32, 43, 191, 0.2);
+        }
+
+        .btn-solid-custom:hover {
+            background-color: var(--tk-blue-dark);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(32, 43, 191, 0.3);
+        }
+
+        /* --- Hero Section (Caja Grande Animada) --- */
+        .hero {
+            /* Degradado más grande que el contenedor para poder moverlo */
+            background: linear-gradient(-45deg, #161e87, #202bbf, #2a38e8, #161e87);
+            background-size: 300% 300%;
+            /* Activamos el movimiento en bucle infinito (dura 10 segundos el ciclo) */
+            animation: gradientMove 10s ease infinite;
+
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-weight: 800;
+            font-size: 3.5rem;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            font-weight: 400;
+            opacity: 0.9;
+            max-width: 650px;
+            margin: 0 auto 40px auto;
+            line-height: 1.6;
+        }
+
+        .btn-hero {
+            background-color: #0a0f44;
+            color: white;
+            border-radius: 50px;
+            padding: 14px 35px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-hero:hover {
+            background-color: #050826;
+            color: white;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- Features Section --- */
+        .features-section {
+            padding: 100px 20px 60px;
+            text-align: center;
+        }
+
+        .features-section h2 {
+            font-weight: 800;
+            color: var(--tk-blue);
+            margin-bottom: 15px;
+            font-size: 2.2rem;
+            letter-spacing: -0.5px;
+        }
+
+        .features-section .subtitle {
+            color: var(--tk-muted);
+            max-width: 550px;
+            margin: 0 auto 60px auto;
+            font-size: 1.1rem;
+        }
+
+        /* Tarjetas estilo SaaS */
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 45px 30px;
+            height: 100%;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(32, 43, 191, 0.08);
+            border-color: rgba(32, 43, 191, 0.1);
+        }
+
+        /* Contenedor del Icono */
+        .icon-wrapper {
+            width: 70px;
+            height: 70px;
+            background: var(--tk-blue-soft);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px auto;
+            color: var(--tk-blue);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .icon-wrapper {
+            transform: scale(1.1) rotate(3deg);
+        }
+
+        .feature-card h4 {
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin-bottom: 15px;
+            color: var(--tk-dark);
+        }
+
+        .feature-card p {
+            color: var(--tk-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        /* --- About Us Section --- */
+        .about-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            max-width: 900px;
+            margin: 0 auto 100px auto;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .about-card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .about-card h4 {
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1.4rem;
+        }
+
+        .about-card p {
+            color: var(--tk-dark);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 0;
+        }
+
+        /* --- Footer --- */
+        footer {
+            background-color: var(--tk-blue);
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.05rem;
+            }
+
+            .about-card {
+                padding: 35px 20px;
+            }
+        }
+    </style>
 </head>
 
-<body class="<?= !empty($preferencias['modo_compacto']) ? 'modo-compacto' : '' ?>">
+<body>
 
-    <header class="tk-header">
+    <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container d-flex justify-content-between align-items-center">
-            <a href="index.php" class="tk-logo"><?= $t['app_nombre'] ?></a>
-            <div class="d-flex align-items-center gap-3">
-                <span class="text-white d-none d-sm-block fw-500"><?= htmlspecialchars($userData['nombre']); ?></span>
-                <a href="configuracion.php">
-                    <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="avatar-img" alt="Perfil">
-                </a>
-                <a href="logout.php" class="tk-btn-logout" title="<?= $t['cerrar_sesion'] ?>">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    <span class="d-none d-md-inline"><?= $t['salir'] ?></span>
-                </a>
+            <a class="navbar-brand" href="index.php">TicKeep</a>
+            <div class="d-flex gap-3 align-items-center">
+                <a href="login.php" class="btn-outline-custom">Login</a>
+                <a href="registro.php" class="btn-solid-custom">Registro</a>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <main class="container my-4">
+    <section class="hero anim-fade-up">
+        <div class="container">
+            <h1>Nunca Más Pierdas una Garantía</h1>
+            <p>Guarda tus tickets de compra en segundos. TicKeep organiza tus garantías de forma segura y 100% privada,
+                directamente en tu dispositivo. Sin cuentas. Sin nubes. Sin preocupaciones</p>
+            <a href="registro.php" class="btn-hero">
+                Empieza gratis
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </a>
+        </div>
+    </section>
 
-        <section class="title-section mb-4">
-            <div>
-                <h2 class="mb-0"><?= $t['mis_garantias'] ?></h2>
-                <p class="text-muted small mb-0"><?= count($garantias) ?> <?= count($garantias) !== 1 ? $t['garantias_registradas'] : $t['garantia_registrada'] ?></p>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <div class="dropdown">
-                    <div class="dropdown">
-                        <button class="tk-btn-export d-flex align-items-center gap-1 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            <?= $t['exportar'] ?>
-                        </button>
+    <section class="features-section container anim-fade-up anim-delay-1">
+        <h2>Tu tranquilidad, garantizada</h2>
+        <p class="subtitle">Diseñado para ser poderoso y simple. Te damos el control total sobre tus compras de la forma
+            más segura posible.</p>
 
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item" href="exportar_garantias_pdf.php">
-                                    <?= $t['exportar_pdf'] ?>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="exportar_garantias_excel.php">
-                                    <?= $t['exportar_excel'] ?>
-                                </a>
-                            </li>
-                        </ul>
+        <div class="row g-4 mt-2 mb-5">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
                     </div>
+                    <h4>Privacidad Total</h4>
+                    <p>Todo se guarda exclusivamente en tu cuenta. No tenemos acceso ni compartimos tu información con
+                        terceros.</p>
                 </div>
-                <a href="nueva-garantia.php" class="tk-btn-primary text-decoration-none d-flex align-items-center gap-1">
-                    <?= $t['nueva_garantia'] ?>
-                </a>
             </div>
-        </section>
 
-        <ul class="nav tk-view-tabs mb-4" id="viewTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="tk-view-tab active" id="list-tab" data-bs-toggle="tab" data-bs-target="#tab-lista" type="button" role="tab">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                    </svg>
-                    <?= $t['lista'] ?>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="tk-view-tab" id="cal-tab" data-bs-toggle="tab" data-bs-target="#tab-calendario" type="button" role="tab">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                    <?= $t['calendario'] ?>
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content">
-
-            <div class="tab-pane fade show active" id="tab-lista" role="tabpanel">
-                <section class="search-input-wrapper mb-3">
-                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                    <input type="text" id="searchInput" class="search-input" placeholder="<?= $t['buscar'] ?>">
-                </section>
-
-                <section class="filter-pills mb-4">
-                    <button class="filter-pill active" data-filter="Todo"><?= $t['filtro_todo'] ?></button>
-                    <button class="filter-pill" data-filter="Vigente"><?= $t['filtro_vigente'] ?></button>
-                    <button class="filter-pill" data-filter="Expira pronto"><?= $t['filtro_expira'] ?></button>
-                    <button class="filter-pill" data-filter="Caducada"><?= $t['filtro_caducada'] ?></button>
-                </section>
-
-                <section id="garantias-list">
-                    <?php if (count($garantias) > 0): ?>
-                        <?php foreach ($garantias as $g): ?>
-                            <?php
-                            $status = $g['estado'] ?? 'Vigente';
-                            $badge  = 'badge-vigente';
-                            $statusTraducido = $status;
-
-                            if ($status === 'Vigente') {
-                                $statusTraducido = $t['vigente'];
-                            }
-                            if ($status === 'Expira pronto') {
-                                $badge = 'badge-expira-pronto';
-                                $statusTraducido = $t['expira_pronto'];
-                            }
-                            if ($status === 'Caducada') {
-                                $badge = 'badge-caducada';
-                                $statusTraducido = $t['caducada'];
-                            }
-
-                            $imagenMostrar = 'assets/img/producto-default.png';
-
-                            if (!empty($g['foto_producto']) && file_exists($g['foto_producto'])) {
-                                $imagenMostrar = $g['foto_producto'];
-                            } elseif (!empty($g['archivo_ticket']) && file_exists($g['archivo_ticket'])) {
-                                $imagenMostrar = $g['archivo_ticket'];
-                            }
-                            ?>
-                            <div class="tk-ticket-card"
-                                data-estado="<?= htmlspecialchars($status) ?>"
-                                data-nombre="<?= strtolower(htmlspecialchars($g['nombre_producto'])) ?>"
-                                data-tienda="<?= strtolower(htmlspecialchars($g['tienda']))?>">
-                                <img src="<?= htmlspecialchars($imagenMostrar) ?>" class="ticket-thumb" alt="Producto">
-                                <div class="ticket-info">
-                                    <div class="ticket-header">
-                                        <h3 class="ticket-title"><?= htmlspecialchars($g['nombre_producto']); ?></h3>
-                                        <span class="status-badge <?= $badge ?>"><?= $statusTraducido ?></span>
-                                    </div>
-                                    <p class="mb-1 small"><?= $t['comprado_en'] ?> <span class="store-name fw-bold"><?=htmlspecialchars($g['tienda'] ?? ''); ?></span></p>
-                                    <?php if (!empty($g['comentarios'])): ?>
-                                        <p class="ticket-coments mb-2"><?= htmlspecialchars($g['comentarios']); ?></p>
-                                    <?php endif; ?>
-                                    <p class="ticket-expiry mb-0"><?= $t['vence_el'] ?> <b><?= fechaTickeep($g['fecha_vencimiento'], $preferencias); ?></b>
-                                    </p>
-                                    <?php if (!empty($preferencias['mostrar_dias_restantes'])): ?>
-                                        <?php
-                                        $diasRestantes = diasRestantesGarantia($g['fecha_vencimiento']);
-                                        ?>
-
-                                        <?php if ($diasRestantes > 0): ?>
-                                            <p class="ticket-expiry mb-0 small">
-                                                <?= $t['quedan'] ?> <b><?= $diasRestantes ?></b> <?= $t['dias'] ?>
-                                            </p>
-                                        <?php elseif ($diasRestantes === 0): ?>
-                                            <p class="ticket-expiry mb-0 small text-warning">
-                                                <?= $t['vence_hoy'] ?>
-                                            </p>
-                                        <?php else: ?>
-                                            <p class="ticket-expiry mb-0 small text-danger">
-                                                <?= $t['caduco_hace'] ?> <b><?= abs($diasRestantes) ?></b> <?= $t['dias'] ?>
-                                            </p>
-                                        <?php endif; ?>
-                                    <?php endif; ?>
-                                </div>
-                                <a href="detalle.php?id=<?= $g['id_garantia']; ?>" class="tk-btn-details text-decoration-none"><?= $t['ver_detalles'] ?></a>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="empty-state text-center py-5">
-                            <div style="font-size:3rem">📋</div>
-                            <p class="text-muted mt-3"><?= $t['sin_garantias'] ?></p>
-                            <a href="nueva-garantia.php" class="tk-btn-primary text-decoration-none mt-2 d-inline-block"><?= $t['anadir_primera'] ?></a>
-                        </div>
-                    <?php endif; ?>
-                    <div id="no-results" class="text-center py-5 d-none">
-                        <p class="text-muted"><?= $t['sin_resultados'] ?></p>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <circle cx="12" cy="13" r="3" stroke-width="2" />
+                        </svg>
                     </div>
-                </section>
+                    <h4>Registro en Segundos</h4>
+                    <p>Añade un producto, haz una foto al ticket y dinos cuándo termina la garantía para tenerlo siempre
+                        a mano.</p>
+                </div>
             </div>
 
-            <div class="tab-pane fade" id="tab-calendario" role="tabpanel">
-                <div class="calendar-legend mb-3 d-flex gap-3 flex-wrap">
-                    <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span><?= $t['vigente'] ?></span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#d97706"></span><?= $t['expira_pronto'] ?></span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span><?= $t['caducada'] ?></span>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </div>
+                    <h4>Alertas Inteligentes</h4>
+                    <p>Te avisaremos proactivamente antes de que una garantía importante expire para que estés
+                        prevenido.</p>
                 </div>
-                <div id="tk-calendar"></div>
             </div>
         </div>
-    </main>
 
-    <footer class="main-footer">
-        <p class="mb-1"><?= $t['footer'] ?></p>
-        <p class="mb-0 x-small fw-light"><?= $t['footer_sub'] ?></p>
+        <div class="about-card anim-fade-up anim-delay-2">
+            <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="none" viewBox="0 0 24 24"
+                    stroke="var(--tk-blue)" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                ¿Quiénes Somos?
+            </h4>
+            <p>
+                Nos dedicamos a transformar frustraciones cotidianas en soluciones digitales elegantes. Nuestro proceso
+                es simple: partimos de un problema real, diseñamos una experiencia de usuario intuitiva y construimos
+                software seguro que prioriza la privacidad por diseño.
+            </p>
+        </div>
+    </section>
+
+    <footer>
+        <p>© <?= date('Y') ?> TicKeep. Todos los derechos reservados.</p>
+        <p style="margin-top: 5px; font-weight: 300; opacity: 0.8;">Tu tranquilidad, garantizada.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales-all.global.min.js"></script>
-    
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const filterBtns = document.querySelectorAll('.filter-pill');
-        const cards = document.querySelectorAll('.tk-ticket-card');
-        const noResults = document.getElementById('no-results');
-        let activeFilter = 'Todo';
-
-        function applyFilters() {
-            const q = searchInput.value.toLowerCase().trim();
-            let visible = 0;
-            cards.forEach(card => {
-                const matchQ = !q || card.dataset.nombre.includes(q) || card.dataset.tienda.includes(q);
-                const matchF = activeFilter === 'Todo' || card.dataset.estado === activeFilter;
-                card.style.display = (matchQ && matchF) ? '' : 'none';
-                if (matchQ && matchF) visible++;
-            });
-            noResults.classList.toggle('d-none', visible > 0);
-        }
-
-        searchInput.addEventListener('input', applyFilters);
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                activeFilter = btn.dataset.filter;
-                applyFilters();
-            });
-        });
-
-        document.getElementById('cal-tab').addEventListener('shown.bs.tab', () => {
-            if (window._calInit) return;
-            window._calInit = true;
-            const cal = new FullCalendar.Calendar(document.getElementById('tk-calendar'), {
-                initialView: 'dayGridMonth',
-                locale: '<?= $idiomaActivo ?>',
-                height: 'auto',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,listMonth'
-                },
-                events: <?= $garantiasJson ?>,
-                eventClick(info) {
-                    info.jsEvent.preventDefault();
-                    if (info.event.url) window.location.href = info.event.url;
-                },
-                eventDidMount(info) {
-                    info.el.title = info.event.title + ' — ' + (info.event.extendedProps.tienda || '') + ' (' + (info.event.extendedProps.estado || '') + ')';
-                }
-            });
-            cal.render();
-        });
-    </script>
 </body>
 
 </html>

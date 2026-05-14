@@ -11,7 +11,7 @@ $id_usuario = $_SESSION['id_usuario'];
 $id_garantia = $_GET['id'] ?? null;
 
 if (!$id_garantia) {
-    header("Location: index.php");
+    header("Location: mis_garantias.php");
     exit();
 }
 
@@ -26,7 +26,7 @@ try {
         ':user' => $id_usuario
     ]);
 
-    header("Location: index.php");
+    header("Location: mis_garantias.php");
     exit();
 
 } catch (PDOException $e) {

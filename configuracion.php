@@ -732,7 +732,7 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
 
     <main class="container">
         <div class="settings-shell">
-            <a href="index.php" class="back-link"><?= $t['volver'] ?></a>
+            <a href="mis_garantias.php" class="back-link"><?= $t['volver'] ?></a>
 
             <div class="settings-layout">
                 <aside class="settings-sidebar">
@@ -825,21 +825,6 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                                 </div>
                                 <input class="form-check-input ms-3" type="checkbox" id="notificaciones_email"
                                     name="notificaciones_email" <?= $notificacionesEmail ? 'checked' : '' ?>>
-                            </div>
-                        </div>
-
-                        <div class="setting-box">
-                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
-                                <div>
-                                    <label class="form-check-label fw-bold" for="notificaciones_app">
-                                        <?= $t['notif_app'] ?>
-                                    </label>
-                                    <div class="setting-help">
-                                        <?= $t['notif_app_help'] ?>
-                                    </div>
-                                </div>
-                                <input class="form-check-input ms-3" type="checkbox" id="notificaciones_app"
-                                    name="notificaciones_app" <?= $notificacionesApp ? 'checked' : '' ?>>
                             </div>
                         </div>
 
