@@ -89,9 +89,9 @@ INSERT INTO `notificaciones_enviadas` (`id_notificacion`, `id_usuario`, `id_gara
 
 CREATE TABLE `opciones_configuracion` (
   `id_usuario` int(11) NOT NULL,
-  `foto_perfil` varchar(255) DEFAULT 'default_avatar.png',
-  `idioma` varchar(5) DEFAULT 'es',
-  `tema` enum('claro','oscuro') DEFAULT 'claro',
+  `foto_perfil` varchar(255) DEFAULT NULL,
+  `idioma` varchar(20) DEFAULT 'Español',
+  `tema` varchar(20) DEFAULT 'claro',
   `notificaciones_email` tinyint(1) DEFAULT 1,
   `aviso_vencimiento` tinyint(1) DEFAULT 1,
   `notificaciones_app` tinyint(1) DEFAULT 1,
@@ -114,11 +114,11 @@ CREATE TABLE `opciones_configuracion` (
 --
 
 INSERT INTO `opciones_configuracion` (`id_usuario`, `foto_perfil`, `idioma`, `tema`, `notificaciones_email`, `aviso_vencimiento`, `notificaciones_app`, `dias_aviso`, `frecuencia_recordatorio`, `hora_recordatorio`, `notificar_caducadas`, `resumen_mensual`, `color_acento`, `formato_fecha`, `animaciones_ui`, `orden_garantias`, `mostrar_dias_restantes`, `confirmar_eliminacion`, `modo_compacto`) VALUES
-(2, 'default_avatar.png', 'es', 'claro', 1, 1, 1, 30, 'una_vez', '09:00', 0, 0, '#202bbf', 'd/m/Y', 1, 'fecha_compra_desc', 1, 1, 0),
-(3, 'perfil_3_1777545914.jpg', 'Españ', 'claro', 1, 1, 1, 30, 'una_vez', '09:00', 0, 0, '#202bbf', 'd/m/Y', 1, 'fecha_vencimiento_asc', 1, 0, 0),
-(4, 'perfil_4_1777550569.png', 'Españ', 'claro', 1, 1, 1, 7, 'una_vez', '14:36', 1, 1, '#202bbf', 'd/m/Y', 1, 'fecha_compra_desc', 1, 1, 0),
-(5, 'default_avatar.png', 'es', 'claro', 1, 1, 1, 30, 'una_vez', '09:00', 0, 0, '#202bbf', 'd/m/Y', 1, 'fecha_compra_desc', 1, 1, 0),
-(8, 'default_avatar.png', 'Españ', 'claro', 1, 1, 1, 30, 'una_vez', '09:00', 0, 0, '#202bbf', 'd/m/Y', 1, 'fecha_compra_desc', 1, 1, 0);
+(2, NULL, 'Español', 'claro', 1, 1, 1, 30, 'una_vez', '09:00', 0, 0, '#202bbf', 'd/m/Y', 1, 'fecha_compra_desc', 1, 1, 0),
+(3, 'perfil_3_1777545914.jpg', 'Español', 'claro', 1, 1, 1, 30, 'una_vez', '09:00', 0, 0, '#202bbf', 'd/m/Y', 1, 'fecha_vencimiento_asc', 1, 0, 0),
+(4, 'perfil_4_1777550569.png', 'Español', 'claro', 1, 1, 1, 7, 'una_vez', '14:36', 1, 1, '#202bbf', 'd/m/Y', 1, 'fecha_compra_desc', 1, 1, 0),
+(5, NULL, 'Español', 'claro', 1, 1, 1, 30, 'una_vez', '09:00', 0, 0, '#202bbf', 'd/m/Y', 1, 'fecha_compra_desc', 1, 1, 0),
+(8, NULL, 'Español', 'claro', 1, 1, 1, 30, 'una_vez', '09:00', 0, 0, '#202bbf', 'd/m/Y', 1, 'fecha_compra_desc', 1, 1, 0);
 
 -- --------------------------------------------------------
 

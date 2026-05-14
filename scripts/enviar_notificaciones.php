@@ -1,5 +1,20 @@
 <?php
-require __DIR__ . '/../config/bd.php';
+
+date_default_timezone_set('Europe/Madrid');
+
+// --- PROTECCIÓN CRON ---
+$tokenEsperado = getenv('CRON_TOKEN') ?: '';
+$tokenRecibido = $_GET['token'] ?? '';
+if ($tokenEsperado === '' || !hash_equals($tokenEsperado, $tokenRecibido)) {
+    http_response_code(403);
+    exit('Acceso denegado.');
+}
+// --- FIN PROTECCIÓN ---
+
+
+
+require __DIR__ . '/../config/bd.php';   
+
 require __DIR__ . '/../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -9,28 +24,31 @@ $mailConfig = require __DIR__ . '/../config/mail.php';
 
 function enviarCorreo($mailConfig, $destino, $nombreDestino, $asunto, $html)
 {
-    $mail = new PHPMailer(true);
+    $apiKey = getenv('RESEND_API_KEY');
+    
+    $data = [
+        'from'    => 'TicKeep Notificaciones <onboarding@resend.dev>',
+        'to'      => [$destino],
+        'subject' => $asunto,
+        'html'    => $html,
+    ];
 
-    $mail->isSMTP();
-    $mail->Host = $mailConfig['host'];
-    $mail->SMTPAuth = true;
-    $mail->Username = $mailConfig['username'];
-    $mail->Password = $mailConfig['password'];
-    $mail->SMTPSecure = $mailConfig['secure'];
-    $mail->Port = $mailConfig['port'];
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $apiKey,
+        'Content-Type: application/json',
+    ]);
 
-    $mail->CharSet = 'UTF-8';
-    $mail->Encoding = 'base64';
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-    $mail->setFrom($mailConfig['from_email'], $mailConfig['from_name']);
-    $mail->addAddress($destino, $nombreDestino);
-
-    $mail->isHTML(true);
-    $mail->Subject = $asunto;
-    $mail->Body = $html;
-    $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $html));
-
-    $mail->send();
+    if ($httpCode !== 200 && $httpCode !== 201) {
+        throw new Exception("Resend API error {$httpCode}: {$response}");
+    }
 }
 
 function yaSeEnvio($pdo, $id_usuario, $id_garantia, $tipo, $periodoClave = null)
@@ -57,7 +75,7 @@ function yaSeEnvio($pdo, $id_usuario, $id_garantia, $tipo, $periodoClave = null)
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
 
-    return (int)$stmt->fetchColumn() > 0;
+    return (int) $stmt->fetchColumn() > 0;
 }
 
 function registrarEnvio($pdo, $id_usuario, $id_garantia, $tipo, $periodoClave = null)
@@ -102,7 +120,7 @@ function puedeEnviarPorFrecuencia($pdo, $id_usuario, $id_garantia, $tipo, $frecu
 
     $ultimaFecha = new DateTime($ultima);
     $ahora = new DateTime();
-    $dias = (int)$ultimaFecha->diff($ahora)->format('%a');
+    $dias = (int) $ultimaFecha->diff($ahora)->format('%a');
 
     if ($frecuencia === 'diario') {
         return $dias >= 1;
@@ -120,12 +138,12 @@ function calcularDiasRestantes($fechaVencimiento)
     $hoy = new DateTime('today');
     $vencimiento = new DateTime($fechaVencimiento);
 
-    return (int)$hoy->diff($vencimiento)->format('%r%a');
+    return (int) $hoy->diff($vencimiento)->format('%r%a');
 }
 
 function limpiar($texto)
 {
-    return htmlspecialchars((string)$texto, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
 }
 
 function plantillaGarantiaVencePronto($nombreUsuario, $nombreProducto, $tienda, $fechaVencimiento, $diasRestantes, $enlaceApp)
@@ -339,7 +357,7 @@ function plantillaResumenMensual($nombreUsuario, $resumen, $enlaceApp)
 
     foreach ($resumen as $r) {
         $estado = limpiar($r['estado']);
-        $total = (int)$r['total'];
+        $total = (int) $r['total'];
         $lineas .= "
             <tr>
                 <td style='padding:12px 16px; border-bottom:1px solid #e5e7eb; font-weight:bold;'>{$estado}</td>
@@ -419,7 +437,9 @@ function plantillaResumenMensual($nombreUsuario, $resumen, $enlaceApp)
 }
 
 $horaActual = date('H:i');
-$enlaceApp = 'http://localhost/dashboard/index.php';
+$enlaceApp = getenv('APP_URL') ?: 'https://tickeep-production.up.railway.app'; // Cambiado a tu URL de prod
+
+echo "<h3>✅ Base de datos conectada correctamente.</h3>";
 
 $sqlUsuarios = "SELECT 
                     u.id_usuario,
@@ -439,16 +459,21 @@ $sqlUsuarios = "SELECT
 $stmtUsuarios = $pdo->query($sqlUsuarios);
 $usuarios = $stmtUsuarios->fetchAll(PDO::FETCH_ASSOC);
 
+echo "<h3>👥 Usuarios con notificaciones activadas: " . count($usuarios) . "</h3>";
+
 foreach ($usuarios as $usuario) {
-    $idUsuario = (int)$usuario['id_usuario'];
-    $horaPreferida = $usuario['hora_recordatorio'] ?: '09:00';
+    $idUsuario = (int) $usuario['id_usuario'];
+    
+    // FORMATO INTELIGENTE: Convierte "08:50 PM" a "20:50" automáticamente para evitar fallos de cálculo
+   $horaPreferidaRaw = $usuario['hora_recordatorio'] ?: '09:00';
+$horaPreferida = substr($horaPreferidaRaw, 0, 5); // coge solo HH:MM
 
-    if ($horaActual < $horaPreferida) {
-        continue;
-    }
+if ($horaActual !== $horaPreferida) {
+    continue;
+}
 
-    if ((int)$usuario['aviso_vencimiento'] === 1) {
-        $diasAviso = (int)$usuario['dias_aviso'];
+    if ((int) $usuario['aviso_vencimiento'] === 1) {
+        $diasAviso = (int) $usuario['dias_aviso'];
 
         $sqlGarantias = "SELECT *
                          FROM garantias
@@ -487,14 +512,14 @@ foreach ($usuarios as $usuario) {
                 $enlaceApp
             );
 
+            echo "Enviando aviso de vencimiento a {$usuario['email']}...<br>";
             enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
             registrarEnvio($pdo, $idUsuario, $g['id_garantia'], 'vencimiento');
-
-            echo "Enviado aviso de vencimiento a {$usuario['email']} para {$g['nombre_producto']}\n";
+            echo "✅ Enviado.<br>";
         }
     }
 
-    if ((int)$usuario['notificar_caducadas'] === 1) {
+    if ((int) $usuario['notificar_caducadas'] === 1) {
         $sqlCaducadas = "SELECT *
                          FROM garantias
                          WHERE id_usuario = :id
@@ -522,14 +547,14 @@ foreach ($usuarios as $usuario) {
                 $enlaceApp
             );
 
+            echo "Enviando aviso de garantía caducada a {$usuario['email']}...<br>";
             enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
             registrarEnvio($pdo, $idUsuario, $g['id_garantia'], 'caducada');
-
-            echo "Enviado aviso de garantía caducada a {$usuario['email']} para {$g['nombre_producto']}\n";
+            echo "✅ Enviado.<br>";
         }
     }
 
-    if ((int)$usuario['resumen_mensual'] === 1) {
+    if ((int) $usuario['resumen_mensual'] === 1) {
         $periodo = date('Y-m');
 
         if (!yaSeEnvio($pdo, $idUsuario, null, 'resumen_mensual', $periodo)) {
@@ -547,10 +572,11 @@ foreach ($usuarios as $usuario) {
                 $enlaceApp
             );
 
+            echo "Enviando resumen mensual a {$usuario['email']}...<br>";
             enviarCorreo($mailConfig, $usuario['email'], $usuario['nombre'], $correo['asunto'], $correo['html']);
             registrarEnvio($pdo, $idUsuario, null, 'resumen_mensual', $periodo);
-
-            echo "Enviado resumen mensual a {$usuario['email']}\n";
+            echo "✅ Enviado.<br>";
         }
     }
 }
+echo "<br><strong>Proceso finalizado.</strong>";

@@ -2,6 +2,7 @@
 session_start();
 require 'config/bd.php';
 require 'includes/preferencias_usuario.php';
+require 'config/lang.php'; // Cargamos las traducciones
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: login.php");
@@ -15,6 +16,34 @@ $tipo_alerta = '';
 function valor($array, $clave, $defecto = '')
 {
     return isset($array[$clave]) && $array[$clave] !== null ? $array[$clave] : $defecto;
+}
+
+function rutaFotoPerfil($fotoPerfil)
+{
+    $default = 'assets/img/default-avatar.png';
+
+    if (empty($fotoPerfil)) {
+        return $default;
+    }
+
+    $fotoPerfil = trim($fotoPerfil);
+
+    $posiblesRutas = [];
+
+    if (str_contains($fotoPerfil, '/')) {
+        $posiblesRutas[] = $fotoPerfil;
+    } else {
+        $posiblesRutas[] = 'assets/img/' . $fotoPerfil;
+        $posiblesRutas[] = 'uploads/perfiles/' . $fotoPerfil;
+    }
+
+    foreach ($posiblesRutas as $ruta) {
+        if (file_exists(__DIR__ . '/' . $ruta)) {
+            return $ruta;
+        }
+    }
+
+    return $default;
 }
 
 try {
@@ -59,11 +88,8 @@ try {
     die("Error: " . $e->getMessage());
 }
 
-$fotoPerfil = 'default-avatar.png';
-
-if (!empty($usuario['foto_perfil']) && file_exists(__DIR__ . '/assets/img/' . $usuario['foto_perfil'])) {
-    $fotoPerfil = $usuario['foto_perfil'];
-}
+$fotoPerfilActual = $usuario['foto_perfil'] ?? null;
+$fotoPerfil = rutaFotoPerfil($fotoPerfilActual);
 $temaActual = valor($usuario, 'tema', 'claro');
 $colorActual = valor($usuario, 'color_acento', '#202bbf');
 
@@ -138,22 +164,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($nombre === '' || $email === '') {
-        $mensaje = 'El nombre y el correo son obligatorios.';
+        $mensaje = $t['campo_obligatorio'];
         $tipo_alerta = 'danger';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $mensaje = 'El correo electrónico no tiene un formato válido.';
+        $mensaje = $t['email_invalido'];
         $tipo_alerta = 'danger';
     } elseif (($password_nueva !== '' || $password_confirmar !== '' || $password_actual !== '') && $password_actual === '') {
         $mensaje = 'Para cambiar la contraseña debes introducir la contraseña actual.';
         $tipo_alerta = 'danger';
     } elseif ($password_nueva !== $password_confirmar) {
-        $mensaje = 'La nueva contraseña y su confirmación no coinciden.';
+        $mensaje = $t['pass_no_coincide'];
         $tipo_alerta = 'danger';
     } elseif ($password_nueva !== '' && strlen($password_nueva) < 6) {
-        $mensaje = 'La nueva contraseña debe tener al menos 6 caracteres.';
+        $mensaje = $t['pass_corta'];
         $tipo_alerta = 'danger';
     } elseif ($password_nueva !== '' && !password_verify($password_actual, $usuario['contrasena'])) {
-        $mensaje = 'La contraseña actual no es correcta.';
+        $mensaje = $t['pass_actual_mal'];
         $tipo_alerta = 'danger';
     } else {
         try {
@@ -164,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             if ($stmtEmail->fetch()) {
-                $mensaje = 'Ese correo electrónico ya está siendo usado por otro usuario.';
+                $mensaje = $t['email_en_uso'];
                 $tipo_alerta = 'danger';
             } else {
                 $pdo->beginTransaction();
@@ -199,35 +225,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                 }
 
-                $nuevaFoto = $fotoPerfil;
+                $nuevaFoto = $usuario['foto_perfil'] ?? null;
 
                 if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] !== UPLOAD_ERR_NO_FILE) {
-                    if ($_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-                        $directorio = 'assets/img/';
-
-                        if (!is_dir($directorio)) {
-                            mkdir($directorio, 0777, true);
-                        }
-
-                        $extension = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));
-                        $permitidas = ['jpg', 'jpeg', 'png', 'webp'];
-                        $tamano = $_FILES['foto_perfil']['size'];
-
-                        if (!in_array($extension, $permitidas, true)) {
-                            throw new Exception('Formato de imagen no permitido.');
-                        }
-
-                        if ($tamano > 3 * 1024 * 1024) {
-                            throw new Exception('La foto de perfil no puede superar los 3 MB.');
-                        }
-
-                        $nuevoNombre = 'perfil_' . $id_usuario . '_' . time() . '.' . $extension;
-                        $rutaFinal = $directorio . $nuevoNombre;
-
-                        if (move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $rutaFinal)) {
-                            $nuevaFoto = $nuevoNombre;
-                        }
+                    if ($_FILES['foto_perfil']['error'] !== UPLOAD_ERR_OK) {
+                        throw new Exception('Error al subir la foto de perfil.');
                     }
+
+                    $directorioRelativo = 'uploads/perfiles/';
+                    $directorioAbsoluto = __DIR__ . '/' . $directorioRelativo;
+
+                    if (!is_dir($directorioAbsoluto) && !mkdir($directorioAbsoluto, 0775, true)) {
+                        throw new Exception('No se pudo crear la carpeta de perfiles.');
+                    }
+
+                    if (!is_writable($directorioAbsoluto)) {
+                        throw new Exception('La carpeta uploads/perfiles no tiene permisos de escritura.');
+                    }
+
+                    $extension = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));
+                    $permitidas = ['jpg', 'jpeg', 'png', 'webp'];
+                    $tamano = $_FILES['foto_perfil']['size'];
+
+                    if (!in_array($extension, $permitidas, true)) {
+                        throw new Exception('Formato de imagen no permitido. Usa JPG, PNG o WEBP.');
+                    }
+
+                    if ($tamano > 3 * 1024 * 1024) {
+                        throw new Exception('La foto de perfil no puede superar los 3 MB.');
+                    }
+
+                    $nuevoNombre = 'perfil_' . $id_usuario . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+                    $rutaFinal = $directorioAbsoluto . $nuevoNombre;
+
+                    if (!move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $rutaFinal)) {
+                        throw new Exception('No se pudo guardar la foto de perfil.');
+                    }
+
+                    $nuevaFoto = $directorioRelativo . $nuevoNombre;
                 }
 
                 if ($existeConfiguracion) {
@@ -321,14 +356,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->rollBack();
             }
 
-            $mensaje = 'Error al guardar la configuración: ' . $e->getMessage();
+            $mensaje = $t['config_error'] . ' ' . $e->getMessage();
             $tipo_alerta = 'danger';
         }
     }
 }
 
 if (isset($_GET['guardado'])) {
-    $mensaje = 'Configuración guardada correctamente.';
+    $mensaje = $t['config_guardada'];
     $tipo_alerta = 'success';
 
     try {
@@ -362,7 +397,8 @@ if (isset($_GET['guardado'])) {
         $stmt->execute([':id' => $id_usuario]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $fotoPerfil = !empty($usuario['foto_perfil']) ? $usuario['foto_perfil'] : 'default-avatar.png';
+        $fotoPerfilActual = $usuario['foto_perfil'] ?? null;
+        $fotoPerfil = rutaFotoPerfil($fotoPerfilActual);
         $temaActual = valor($usuario, 'tema', 'claro');
         $colorActual = valor($usuario, 'color_acento', '#202bbf');
     } catch (PDOException $e) {
@@ -393,13 +429,14 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
 
 <head>
     <meta charset="UTF-8">
-    <title>Configuración - TicKeep</title>
+    <title><?= $t['titulo_config'] ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/auth.css">
     <link rel="stylesheet" href="assets/css/preferencias.css">
-    <style>
+    <!-- <link rel="stylesheet" href="assets/css/config.css"> -->
+       <style>
         :root {
             --accent: <?= htmlspecialchars($colorActual) ?>;
             --bg: #f3f4f6;
@@ -692,46 +729,46 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
 
     <header class="tk-header">
         <div class="container d-flex justify-content-between align-items-center">
-            <a href="index.php" class="tk-logo">TicKeep</a>
+            <a href="index.php" class="tk-logo"><?= $t['app_nombre'] ?></a>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-white d-none d-sm-block"><?= htmlspecialchars($_SESSION['nombre'] ?? 'Usuario') ?></span>
-                <img src="assets/img/<?= htmlspecialchars($fotoPerfil); ?>" class="avatar-img" alt="Perfil">
+                <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="avatar-img" alt="Perfil">
             </div>
         </div>
     </header>
 
     <main class="container">
         <div class="settings-shell">
-            <a href="index.php" class="back-link">← Volver a mis garantías</a>
+            <a href="index.php" class="back-link"><?= $t['volver'] ?></a>
 
             <div class="settings-layout">
                 <aside class="settings-sidebar">
                     <div class="text-center">
-                        <img src="assets/img/<?= htmlspecialchars($fotoPerfil); ?>" class="sidebar-avatar" alt="Foto perfil">
+                        <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="sidebar-avatar" alt="Foto perfil">
                         <div class="sidebar-name"><?= htmlspecialchars($usuario['nombre']) ?></div>
                         <div class="sidebar-email"><?= htmlspecialchars($usuario['email']) ?></div>
                     </div>
 
                     <nav class="settings-nav">
-                        <a href="#perfil">Perfil</a>
-                        <a href="#seguridad">Seguridad</a>
-                        <a href="#notificaciones">Notificaciones</a>
-                        <a href="#apariencia">Apariencia</a>
-                        <a href="#gestion">Gestión de garantías</a>
+                        <a href="#perfil"><?= $t['perfil'] ?></a>
+                        <a href="#seguridad"><?= $t['seguridad'] ?></a>
+                        <a href="#notificaciones"><?= $t['notificaciones'] ?></a>
+                        <a href="#apariencia"><?= $t['apariencia'] ?></a>
+                        <a href="#gestion"><?= $t['gestion'] ?></a>
                     </nav>
                 </aside>
 
                 <section class="config-card">
                     <form method="POST" enctype="multipart/form-data">
                         <div class="profile-wrapper">
-                            <img src="assets/img/<?= htmlspecialchars($fotoPerfil); ?>" class="profile-img" alt="Foto perfil">
+                            <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="profile-img" alt="Foto perfil">
                             <label for="foto_perfil" class="edit-photo" title="Cambiar foto">✎</label>
                             <input type="file" id="foto_perfil" name="foto_perfil" accept=".jpg,.jpeg,.png,.webp" hidden>
                         </div>
 
-                        <h2 class="page-title">Configuración</h2>
+                        <h2 class="page-title"><?= $t['config_titulo'] ?></h2>
                         <p class="page-subtitle">
-                            Personaliza tu cuenta y el comportamiento de TicKeep con opciones útiles y prácticas.
+                            <?= $t['config_subtitulo'] ?>
                         </p>
 
                         <?php if ($mensaje !== ''): ?>
@@ -740,57 +777,57 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                             </div>
                         <?php endif; ?>
 
-                        <h5 class="section-title" id="perfil">Perfil de usuario</h5>
+                        <h5 class="section-title" id="perfil"><?= $t['perfil'] ?></h5>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Nombre de usuario</label>
+                                <label class="form-label"><?= $t['nombre_usuario'] ?></label>
                                 <input type="text" name="nombre" class="form-control"
                                     value="<?= htmlspecialchars($usuario['nombre']) ?>" required>
-                                <div class="setting-help">Nombre visible dentro de la aplicación.</div>
+                                <div class="setting-help"><?= $t['nombre_help'] ?></div>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Correo electrónico</label>
+                                <label class="form-label"><?= $t['correo'] ?></label>
                                 <input type="email" name="email" class="form-control"
                                     value="<?= htmlspecialchars($usuario['email']) ?>" required>
-                                <div class="setting-help">Correo usado para avisos y acceso a la cuenta.</div>
+                                <div class="setting-help"><?= $t['correo_help'] ?></div>
                             </div>
                         </div>
 
-                        <h5 class="section-title" id="seguridad">Seguridad</h5>
+                        <h5 class="section-title" id="seguridad"><?= $t['seguridad'] ?></h5>
 
                         <div class="security-note mb-3">
-                            Si quieres cambiar la contraseña, escribe primero la actual. Si no, deja estos campos vacíos.
+                            <?= $t['pass_nota'] ?>
                         </div>
 
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Contraseña actual</label>
+                                <label class="form-label"><?= $t['pass_actual'] ?></label>
                                 <input type="password" name="password_actual" class="form-control">
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Nueva contraseña</label>
+                                <label class="form-label"><?= $t['pass_nueva'] ?></label>
                                 <input type="password" name="password_nueva" class="form-control">
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Confirmar nueva contraseña</label>
+                                <label class="form-label"><?= $t['pass_confirmar'] ?></label>
                                 <input type="password" name="password_confirmar" class="form-control">
                             </div>
                         </div>
 
-                        <h5 class="section-title" id="notificaciones">Notificaciones</h5>
+                        <h5 class="section-title" id="notificaciones"><?= $t['notificaciones'] ?></h5>
 
                         <div class="setting-box">
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
                                 <div>
                                     <label class="form-check-label fw-bold" for="notificaciones_email">
-                                        Notificaciones por correo
+                                        <?= $t['notif_email'] ?>
                                     </label>
                                     <div class="setting-help">
-                                        Activa o desactiva el envío de emails desde la aplicación.
+                                        <?= $t['notif_email_help'] ?>
                                     </div>
                                 </div>
                                 <input class="form-check-input ms-3" type="checkbox" id="notificaciones_email"
@@ -802,10 +839,10 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
                                 <div>
                                     <label class="form-check-label fw-bold" for="notificaciones_app">
-                                        Notificaciones dentro de la app
+                                        <?= $t['notif_app'] ?>
                                     </label>
                                     <div class="setting-help">
-                                        Preparado para mostrar avisos internos en el panel principal.
+                                        <?= $t['notif_app_help'] ?>
                                     </div>
                                 </div>
                                 <input class="form-check-input ms-3" type="checkbox" id="notificaciones_app"
@@ -817,10 +854,10 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 mb-3">
                                 <div>
                                     <label class="form-check-label fw-bold" for="aviso_vencimiento">
-                                        Avisar cuando una garantía vaya a expirar pronto
+                                        <?= $t['aviso_venc'] ?>
                                     </label>
                                     <div class="setting-help">
-                                        Te permite definir con cuánta antelación quieres recibir el aviso.
+                                        <?= $t['aviso_venc_help'] ?>
                                     </div>
                                 </div>
                                 <input class="form-check-input ms-3" type="checkbox" id="aviso_vencimiento"
@@ -829,27 +866,27 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
 
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Antelación del aviso</label>
+                                    <label class="form-label"><?= $t['antelacion'] ?></label>
                                     <select name="dias_aviso" id="dias_aviso" class="form-select">
-                                        <option value="7" <?= $diasAviso === 7 ? 'selected' : '' ?>>7 días</option>
-                                        <option value="15" <?= $diasAviso === 15 ? 'selected' : '' ?>>15 días</option>
-                                        <option value="30" <?= $diasAviso === 30 ? 'selected' : '' ?>>30 días</option>
-                                        <option value="60" <?= $diasAviso === 60 ? 'selected' : '' ?>>60 días</option>
-                                        <option value="90" <?= $diasAviso === 90 ? 'selected' : '' ?>>90 días</option>
+                                        <option value="7" <?= $diasAviso === 7 ? 'selected' : '' ?>>7 <?= $t['dias'] ?></option>
+                                        <option value="15" <?= $diasAviso === 15 ? 'selected' : '' ?>>15 <?= $t['dias'] ?></option>
+                                        <option value="30" <?= $diasAviso === 30 ? 'selected' : '' ?>>30 <?= $t['dias'] ?></option>
+                                        <option value="60" <?= $diasAviso === 60 ? 'selected' : '' ?>>60 <?= $t['dias'] ?></option>
+                                        <option value="90" <?= $diasAviso === 90 ? 'selected' : '' ?>>90 <?= $t['dias'] ?></option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Frecuencia del recordatorio</label>
+                                    <label class="form-label"><?= $t['frecuencia'] ?></label>
                                     <select name="frecuencia_recordatorio" id="frecuencia_recordatorio" class="form-select">
-                                        <option value="una_vez" <?= $frecuenciaRecordatorio === 'una_vez' ? 'selected' : '' ?>>Solo una vez</option>
-                                        <option value="semanal" <?= $frecuenciaRecordatorio === 'semanal' ? 'selected' : '' ?>>Semanal</option>
-                                        <option value="diario" <?= $frecuenciaRecordatorio === 'diario' ? 'selected' : '' ?>>Diario</option>
+                                        <option value="una_vez" <?= $frecuenciaRecordatorio === 'una_vez' ? 'selected' : '' ?>><?= $t['solo_una_vez'] ?></option>
+                                        <option value="semanal" <?= $frecuenciaRecordatorio === 'semanal' ? 'selected' : '' ?>><?= $t['semanal'] ?></option>
+                                        <option value="diario" <?= $frecuenciaRecordatorio === 'diario' ? 'selected' : '' ?>><?= $t['diario'] ?></option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Hora preferida del aviso</label>
+                                    <label class="form-label"><?= $t['hora_aviso'] ?></label>
                                     <input type="time" name="hora_recordatorio" id="hora_recordatorio" class="form-control"
                                         value="<?= htmlspecialchars($horaRecordatorio) ?>">
                                 </div>
@@ -858,10 +895,10 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 mb-3">
                                 <div>
                                     <label class="form-check-label fw-bold" for="notificar_caducadas">
-                                        Avisar también cuando una garantía ya haya caducado
+                                        <?= $t['notif_caducadas'] ?>
                                     </label>
                                     <div class="setting-help">
-                                        Útil para tener control de las garantías que ya vencieron.
+                                        <?= $t['notif_caducadas_help'] ?>
                                     </div>
                                 </div>
                                 <input class="form-check-input ms-3" type="checkbox" id="notificar_caducadas"
@@ -871,10 +908,10 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
                                 <div>
                                     <label class="form-check-label fw-bold" for="resumen_mensual">
-                                        Recibir resumen mensual
+                                        <?= $t['resumen_mensual'] ?>
                                     </label>
                                     <div class="setting-help">
-                                        Resumen con garantías vigentes, próximas a vencer y caducadas.
+                                        <?= $t['resumen_mensual_help'] ?>
                                     </div>
                                 </div>
                                 <input class="form-check-input ms-3" type="checkbox" id="resumen_mensual"
@@ -882,28 +919,28 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                             </div>
                         </div>
 
-                        <h5 class="section-title" id="apariencia">Apariencia</h5>
+                        <h5 class="section-title" id="apariencia"><?= $t['apariencia'] ?></h5>
 
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Idioma</label>
+                                <label class="form-label"><?= $t['idioma'] ?></label>
                                 <select name="idioma" class="form-select">
                                     <option value="Español" <?= $idiomaActual === 'Español' ? 'selected' : '' ?>>Español</option>
-                                    <option value="Inglés" <?= $idiomaActual === 'Inglés' ? 'selected' : '' ?>>Inglés</option>
+                                    <option value="Inglés" <?= $idiomaActual === 'Inglés' ? 'selected' : '' ?>>English</option>
                                 </select>
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Tema</label>
+                                <label class="form-label"><?= $t['tema'] ?></label>
                                 <select name="tema" id="tema" class="form-select">
-                                    <option value="claro" <?= $temaActual === 'claro' ? 'selected' : '' ?>>Claro</option>
-                                    <option value="oscuro" <?= $temaActual === 'oscuro' ? 'selected' : '' ?>>Oscuro</option>
-                                    <option value="sistema" <?= $temaActual === 'sistema' ? 'selected' : '' ?>>Según el sistema</option>
+                                    <option value="claro" <?= $temaActual === 'claro' ? 'selected' : '' ?>><?= $t['tema_claro'] ?></option>
+                                    <option value="oscuro" <?= $temaActual === 'oscuro' ? 'selected' : '' ?>><?= $t['tema_oscuro'] ?></option>
+                                    <option value="sistema" <?= $temaActual === 'sistema' ? 'selected' : '' ?>><?= $t['tema_sistema'] ?></option>
                                 </select>
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Formato de fecha</label>
+                                <label class="form-label"><?= $t['formato_fecha'] ?></label>
                                 <select name="formato_fecha" class="form-select">
                                     <option value="d/m/Y" <?= $formatoFechaActual === 'd/m/Y' ? 'selected' : '' ?>>31/12/2026</option>
                                     <option value="Y-m-d" <?= $formatoFechaActual === 'Y-m-d' ? 'selected' : '' ?>>2026-12-31</option>
@@ -913,7 +950,7 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Color principal</label>
+                            <label class="form-label"><?= $t['color_principal'] ?></label>
                             <div class="d-flex gap-2 flex-wrap">
                                 <?php
                                 $colores = ['#202bbf', '#0d7fc0', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#111827'];
@@ -923,24 +960,26 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                                         <input class="accent-radio" type="radio" name="color_acento" value="<?= htmlspecialchars($color) ?>"
                                             <?= strtolower($colorActual) === strtolower($color) ? 'checked' : '' ?>>
                                         <span class="accent-option" style="background:<?= htmlspecialchars($color) ?>">
-                                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
                                         </span>
                                     </label>
                                 <?php endforeach; ?>
                             </div>
                         </div>
 
-                        <h5 class="section-title" id="gestion">Gestión de garantías</h5>
+                        <h5 class="section-title" id="gestion"><?= $t['gestion'] ?></h5>
 
                         <div class="mb-3">
-                            <label class="form-label">Ordenar garantías por</label>
+                            <label class="form-label"><?= $t['ordenar_por'] ?></label>
                             <select name="orden_garantias" class="form-select">
-                                <option value="fecha_compra_desc" <?= $ordenGarantias === 'fecha_compra_desc' ? 'selected' : '' ?>>Fecha de compra (más reciente primero)</option>
-                                <option value="fecha_compra_asc" <?= $ordenGarantias === 'fecha_compra_asc' ? 'selected' : '' ?>>Fecha de compra (más antigua primero)</option>
-                                <option value="fecha_vencimiento_asc" <?= $ordenGarantias === 'fecha_vencimiento_asc' ? 'selected' : '' ?>>Fecha de vencimiento (más próxima primero)</option>
-                                <option value="fecha_vencimiento_desc" <?= $ordenGarantias === 'fecha_vencimiento_desc' ? 'selected' : '' ?>>Fecha de vencimiento (más lejana primero)</option>
-                                <option value="nombre_asc" <?= $ordenGarantias === 'nombre_asc' ? 'selected' : '' ?>>Nombre (A-Z)</option>
-                                <option value="nombre_desc" <?= $ordenGarantias === 'nombre_desc' ? 'selected' : '' ?>>Nombre (Z-A)</option>
+                                <option value="fecha_compra_desc" <?= $ordenGarantias === 'fecha_compra_desc' ? 'selected' : '' ?>><?= $t['orden_compra_desc'] ?></option>
+                                <option value="fecha_compra_asc" <?= $ordenGarantias === 'fecha_compra_asc' ? 'selected' : '' ?>><?= $t['orden_compra_asc'] ?></option>
+                                <option value="fecha_vencimiento_asc" <?= $ordenGarantias === 'fecha_vencimiento_asc' ? 'selected' : '' ?>><?= $t['orden_venc_asc'] ?></option>
+                                <option value="fecha_vencimiento_desc" <?= $ordenGarantias === 'fecha_vencimiento_desc' ? 'selected' : '' ?>><?= $t['orden_venc_desc'] ?></option>
+                                <option value="nombre_asc" <?= $ordenGarantias === 'nombre_asc' ? 'selected' : '' ?>><?= $t['orden_nombre_asc'] ?></option>
+                                <option value="nombre_desc" <?= $ordenGarantias === 'nombre_desc' ? 'selected' : '' ?>><?= $t['orden_nombre_desc'] ?></option>
                             </select>
                         </div>
 
@@ -948,10 +987,10 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
                                 <div>
                                     <label class="form-check-label fw-bold" for="mostrar_dias_restantes">
-                                        Mostrar días restantes hasta el vencimiento
+                                        <?= $t['mostrar_dias'] ?>
                                     </label>
                                     <div class="setting-help">
-                                        Muy útil para ver rápidamente cuánto tiempo le queda a cada garantía.
+                                        <?= $t['mostrar_dias_help'] ?>
                                     </div>
                                 </div>
                                 <input class="form-check-input ms-3" type="checkbox" id="mostrar_dias_restantes"
@@ -963,10 +1002,10 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
                                 <div>
                                     <label class="form-check-label fw-bold" for="confirmar_eliminacion">
-                                        Pedir confirmación al borrar una garantía
+                                        <?= $t['confirmar_elim'] ?>
                                     </label>
                                     <div class="setting-help">
-                                        Recomendado para evitar borrar garantías por error.
+                                        <?= $t['confirmar_elim_help'] ?>
                                     </div>
                                 </div>
                                 <input class="form-check-input ms-3" type="checkbox" id="confirmar_eliminacion"
@@ -975,10 +1014,10 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
-                            <a href="logout.php" class="btn-logout-red">Cerrar sesión</a>
+                            <a href="logout.php" class="btn-logout-red"><?= $t['cerrar_sesion'] ?></a>
 
                             <button type="submit" class="btn btn-save-config">
-                                Guardar configuración
+                                <?= $t['guardar'] ?>
                             </button>
                         </div>
                     </form>
@@ -988,8 +1027,8 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
     </main>
 
     <footer>
-        © 2025 TicKeep. Todos los derechos reservados.<br>
-        Tu tranquilidad, garantizada.
+        <?= $t['footer'] ?><br>
+        <?= $t['footer_sub'] ?>
     </footer>
 
     <script>

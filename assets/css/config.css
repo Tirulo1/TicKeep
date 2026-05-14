@@ -1,0 +1,294 @@
+:root {
+            --accent: <?= htmlspecialchars($colorActual) ?>;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --danger: #dc2626;
+        }
+
+        html[data-theme="oscuro"] {
+            --bg: #101827;
+            --card: #172033;
+            --text: #f9fafb;
+            --muted: #a1a1aa;
+            --border: #334155;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .settings-shell {
+            max-width: 1100px;
+            margin: 50px auto 0;
+        }
+
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .settings-sidebar,
+        .config-card {
+            background: var(--card);
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(15, 23, 42, .08);
+            border: 1px solid var(--border);
+        }
+
+        .settings-sidebar {
+            padding: 22px;
+            position: sticky;
+            top: 95px;
+        }
+
+        .sidebar-avatar {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+        }
+
+        .sidebar-name {
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .sidebar-email {
+            color: var(--muted);
+            font-size: .85rem;
+            word-break: break-all;
+        }
+
+        .settings-nav {
+            margin-top: 24px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .settings-nav a {
+            color: var(--text);
+            text-decoration: none;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: .92rem;
+        }
+
+        .settings-nav a:hover {
+            background: rgba(32, 43, 191, .08);
+            color: var(--accent);
+        }
+
+        .config-card {
+            padding: 34px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+            margin-bottom: 18px;
+        }
+
+        .profile-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .profile-img {
+            width: 142px;
+            height: 142px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--accent);
+        }
+
+        .edit-photo {
+            position: absolute;
+            bottom: 6px;
+            margin-left: 104px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+        }
+
+        .page-title {
+            color: var(--accent);
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            font-size: .95rem;
+            margin-bottom: 28px;
+        }
+
+        .section-title {
+            color: var(--accent);
+            font-weight: 800;
+            margin-top: 34px;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-label {
+            font-weight: 700;
+            font-size: .9rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            border-color: var(--border);
+            padding: 10px 12px;
+        }
+
+        html[data-theme="oscuro"] .form-control,
+        html[data-theme="oscuro"] .form-select {
+            background: #111827;
+            color: #f9fafb;
+            border-color: #374151;
+        }
+
+        .setting-box {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            background: rgba(148, 163, 184, .06);
+            margin-bottom: 14px;
+        }
+
+        .setting-help {
+            color: var(--muted);
+            font-size: .84rem;
+            margin-top: 3px;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .accent-radio {
+            display: none;
+        }
+
+        .accent-option {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 48px;
+            height: 38px;
+            border-radius: 8px;
+            border: 2.5px solid transparent;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s, border-color .15s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+            position: relative;
+            font-size: .78rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: .01em;
+            white-space: nowrap;
+        }
+
+        .accent-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .28);
+        }
+
+        .accent-radio:checked+.accent-option {
+            border-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, .30), 0 2px 8px rgba(0, 0, 0, .2);
+            transform: translateY(-2px);
+        }
+
+        .accent-option .check-icon {
+            display: none;
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .accent-radio:checked+.accent-option .check-icon {
+            display: block;
+        }
+
+        .btn-save-config {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 800;
+        }
+
+        .btn-save-config:hover {
+            filter: brightness(.92);
+            color: white;
+        }
+
+        .btn-logout-red {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .btn-logout-red:hover {
+            background: #b91c1c;
+            color: white;
+        }
+
+        .security-note {
+            background: rgba(32, 43, 191, .08);
+            border-left: 4px solid var(--accent);
+            padding: 12px;
+            border-radius: 10px;
+            color: var(--muted);
+            font-size: .88rem;
+        }
+
+        footer {
+            background: #202bbf;
+            color: white;
+            text-align: center;
+            padding: 18px;
+            font-size: .8rem;
+            margin-top: 80px;
+        }
+
+        @media (max-width: 900px) {
+            .settings-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-sidebar {
+                position: static;
+            }
+        }
