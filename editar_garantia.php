@@ -144,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <div class="mb-4">
                 <label class="form-label">Comentarios</label>
-                <textarea class="form-control" name="comentarios" rows="4"><?= htmlspecialchars($garantia['comentarios']) ?></textarea>
+                <textarea class="form-control" name="comentarios" rows="4"><?= htmlspecialchars($garantia['comentarios'] ?? '') ?></textarea>
             </div>
 
             <!-- 🔥 BOTÓN CON MISMO ESTILO -->
