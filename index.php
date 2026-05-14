@@ -235,14 +235,14 @@ $garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
                             <div class="tk-ticket-card"
                                 data-estado="<?= htmlspecialchars($status) ?>"
                                 data-nombre="<?= strtolower(htmlspecialchars($g['nombre_producto'])) ?>"
-                                data-tienda="<?= strtolower(htmlspecialchars($g['tienda'] ?? '')) ?>">
+                                data-tienda="<?= strtolower(htmlspecialchars($g['tienda']))?>">
                                 <img src="<?= htmlspecialchars($imagenMostrar) ?>" class="ticket-thumb" alt="Producto">
                                 <div class="ticket-info">
                                     <div class="ticket-header">
                                         <h3 class="ticket-title"><?= htmlspecialchars($g['nombre_producto']); ?></h3>
                                         <span class="status-badge <?= $badge ?>"><?= $statusTraducido ?></span>
                                     </div>
-                                    <p class="mb-1 small"><?= $t['comprado_en'] ?> <span class="store-name fw-bold"><?= htmlspecialchars($g['tienda']); ?></span></p>
+                                    <p class="mb-1 small"><?= $t['comprado_en'] ?> <span class="store-name fw-bold"><?=htmlspecialchars($g['tienda'] ?? ''); ?></span></p>
                                     <?php if (!empty($g['comentarios'])): ?>
                                         <p class="ticket-coments mb-2"><?= htmlspecialchars($g['comentarios']); ?></p>
                                     <?php endif; ?>
@@ -302,6 +302,7 @@ $garantiasJson = json_encode($garantiasCalendario, JSON_UNESCAPED_UNICODE);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales-all.global.min.js"></script>
     
     <script>
         const searchInput = document.getElementById('searchInput');
