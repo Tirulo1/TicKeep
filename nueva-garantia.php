@@ -22,7 +22,8 @@ $comentarios = trim($_POST['comentarios'] ?? '');
 $archivo_ticket = trim($_POST['archivo_ticket_actual'] ?? '');
 $foto_producto = trim($_POST['foto_producto_actual'] ?? '');
 
-function calcularEstado($fechaVencimiento) {
+function calcularEstado($fechaVencimiento)
+{
     $hoy = new DateTime();
     $vencimiento = new DateTime($fechaVencimiento);
 
@@ -170,8 +171,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="<?= $preferencias['idioma'] === 'Inglés' ? 'en' : 'es' ?>"
-      data-theme="<?= htmlspecialchars($preferencias['tema']) ?>"
-      data-animations="<?= (int)$preferencias['animaciones_ui'] ?>">
+    data-theme="<?= htmlspecialchars($preferencias['tema']) ?>"
+    data-animations="<?= (int)$preferencias['animaciones_ui'] ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -199,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 60px auto;
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
             padding: 45px 35px;
         }
 
@@ -240,136 +242,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
+
 <body>
 
-<nav class="topbar d-flex align-items-center">
-    <div class="container d-flex justify-content-between align-items-center">
-        <a href="index.php" class="brand"><?= $t['app_nombre'] ?></a>
-        <div class="text-white">
-            <?= htmlspecialchars($_SESSION['nombre'] ?? 'Usuario') ?>
+    <nav class="topbar d-flex align-items-center">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="index.php" class="brand"><?= $t['app_nombre'] ?></a>
+            <div class="text-white">
+                <?= htmlspecialchars($_SESSION['nombre'] ?? 'Usuario') ?>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-card">
+            <div class="icon-box">📦</div>
+            <h2 class="title-box"><?= $t['nueva_titulo'] ?></h2>
+
+            <?php if ($mensaje !== ''): ?>
+                <div class="alert alert-<?= htmlspecialchars($tipo_alerta) ?> text-center">
+                    <?= htmlspecialchars($mensaje) ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="archivo_ticket_actual" value="<?= htmlspecialchars($archivo_ticket) ?>">
+                <input type="hidden" name="foto_producto_actual" value="<?= htmlspecialchars($foto_producto) ?>">
+
+                <div class="mb-3">
+                    <label for="nombre_producto" class="form-label"><?= $t['nombre_producto'] ?> *</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="nombre_producto"
+                        name="nombre_producto"
+                        value="<?= htmlspecialchars($nombre_producto) ?>"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="tienda" class="form-label"><?= $t['tienda'] ?></label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="tienda"
+                        name="tienda"
+                        value="<?= htmlspecialchars($tienda) ?>">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="fecha_compra" class="form-label"><?= $t['fecha_compra'] ?> *</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="fecha_compra"
+                            name="fecha_compra"
+                            value="<?= htmlspecialchars($fecha_compra) ?>"
+                            required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="fecha_vencimiento" class="form-label"><?= $t['fecha_vencimiento'] ?> *</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="fecha_vencimiento"
+                            name="fecha_vencimiento"
+                            value="<?= htmlspecialchars($fecha_vencimiento) ?>"
+                            required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="archivo_ticket" class="form-label"><?= $t['subir_ticket'] ?></label>
+                    <input
+                        type="file"
+                        class="form-control"
+                        id="archivo_ticket"
+                        name="archivo_ticket"
+                        accept=".jpg,.jpeg,.png,.webp,.pdf">
+                    <?php if ($archivo_ticket !== ''): ?>
+                        <div class="preview-text"><?= $t['ticket_actual'] ?> <?= htmlspecialchars(basename($archivo_ticket)) ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="mb-3">
+                    <button type="submit" name="accion" value="escanear_ticket" class="btn btn-secondary w-100" formnovalidate>
+                        <?= $t['escanear_ticket'] ?>
+                    </button>
+                </div>
+
+                <div class="mb-3">
+                    <label for="foto_producto" class="form-label"><?= $t['foto_producto'] ?></label>
+                    <input
+                        type="file"
+                        class="form-control"
+                        id="foto_producto"
+                        name="foto_producto"
+                        accept=".jpg,.jpeg,.png,.webp">
+                    <?php if ($foto_producto !== ''): ?>
+                        <div class="preview-text"><?= $t['foto_actual'] ?> <?= htmlspecialchars(basename($foto_producto)) ?></div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="mb-4">
+                    <label for="comentarios" class="form-label"><?= $t['comentarios'] ?></label>
+                    <textarea
+                        class="form-control"
+                        id="comentarios"
+                        name="comentarios"
+                        rows="4"><?= htmlspecialchars($comentarios) ?></textarea>
+                </div>
+
+                <button type="submit" name="accion" value="guardar_garantia" class="btn btn-save text-white w-100">
+                    <?= $t['anadir_producto'] ?>
+                </button>
+            </form>
         </div>
     </div>
-</nav>
 
-<div class="container">
-    <div class="main-card">
-        <div class="icon-box">📦</div>
-        <h2 class="title-box"><?= $t['nueva_titulo'] ?></h2>
-
-        <?php if ($mensaje !== ''): ?>
-            <div class="alert alert-<?= htmlspecialchars($tipo_alerta) ?> text-center">
-                <?= htmlspecialchars($mensaje) ?>
-            </div>
-        <?php endif; ?>
-
-        <form method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="archivo_ticket_actual" value="<?= htmlspecialchars($archivo_ticket) ?>">
-            <input type="hidden" name="foto_producto_actual" value="<?= htmlspecialchars($foto_producto) ?>">
-
-            <div class="mb-3">
-                <label for="nombre_producto" class="form-label"><?= $t['nombre_producto'] ?> *</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="nombre_producto"
-                    name="nombre_producto"
-                    value="<?= htmlspecialchars($nombre_producto) ?>"
-                    required
-                >
-            </div>
-
-            <div class="mb-3">
-                <label for="tienda" class="form-label"><?= $t['tienda'] ?></label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="tienda"
-                    name="tienda"
-                    value="<?= htmlspecialchars($tienda) ?>"
-                >
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="fecha_compra" class="form-label"><?= $t['fecha_compra'] ?> *</label>
-                    <input
-                        type="date"
-                        class="form-control"
-                        id="fecha_compra"
-                        name="fecha_compra"
-                        value="<?= htmlspecialchars($fecha_compra) ?>"
-                        required
-                    >
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label for="fecha_vencimiento" class="form-label"><?= $t['fecha_vencimiento'] ?> *</label>
-                    <input
-                        type="date"
-                        class="form-control"
-                        id="fecha_vencimiento"
-                        name="fecha_vencimiento"
-                        value="<?= htmlspecialchars($fecha_vencimiento) ?>"
-                        required
-                    >
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label for="archivo_ticket" class="form-label"><?= $t['subir_ticket'] ?></label>
-                <input
-                    type="file"
-                    class="form-control"
-                    id="archivo_ticket"
-                    name="archivo_ticket"
-                    accept=".jpg,.jpeg,.png,.webp,.pdf"
-                >
-                <?php if ($archivo_ticket !== ''): ?>
-                    <div class="preview-text"><?= $t['ticket_actual'] ?> <?= htmlspecialchars(basename($archivo_ticket)) ?></div>
-                <?php endif; ?>
-            </div>
-
-            <div class="mb-3">
-                <button type="submit" name="accion" value="escanear_ticket" class="btn btn-secondary w-100" formnovalidate>
-                    <?= $t['escanear_ticket'] ?>
-                </button>
-            </div>
-
-            <div class="mb-3">
-                <label for="foto_producto" class="form-label"><?= $t['foto_producto'] ?></label>
-                <input
-                    type="file"
-                    class="form-control"
-                    id="foto_producto"
-                    name="foto_producto"
-                    accept=".jpg,.jpeg,.png,.webp"
-                >
-                <?php if ($foto_producto !== ''): ?>
-                    <div class="preview-text"><?= $t['foto_actual'] ?> <?= htmlspecialchars(basename($foto_producto)) ?></div>
-                <?php endif; ?>
-            </div>
-
-            <div class="mb-4">
-                <label for="comentarios" class="form-label"><?= $t['comentarios'] ?></label>
-                <textarea
-                    class="form-control"
-                    id="comentarios"
-                    name="comentarios"
-                    rows="4"
-                ><?= htmlspecialchars($comentarios) ?></textarea>
-            </div>
-
-            <button type="submit" name="accion" value="guardar_garantia" class="btn btn-save text-white w-100">
-                <?= $t['anadir_producto'] ?>
-            </button>
-        </form>
-    </div>
-</div>
-
-<footer>
-    <?= $t['footer'] ?><br>
-    <?= $t['footer_sub'] ?>
-</footer>
+    <footer>
+        <?= $t['footer'] ?><br>
+        <?= $t['footer_sub'] ?>
+    </footer>
 
 </body>
+
 </html>
