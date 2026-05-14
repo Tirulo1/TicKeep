@@ -185,14 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
 
-    <nav class="topbar d-flex align-items-center">
-        <div class="container d-flex justify-content-between align-items-center">
-            <a href="index.php" class="brand"><?= $t['app_nombre'] ?></a>
-            <div class="text-white">
-                <?= htmlspecialchars($_SESSION['nombre'] ?? 'Usuario') ?>
-            </div>
-        </div>
-    </nav>
+    <?php require 'partials/header_main.php'; ?>
 
     <div class="container">
         <div class="main-card">
