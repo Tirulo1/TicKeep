@@ -727,14 +727,7 @@ $modoCompacto = (int)valor($usuario, 'modo_compacto', 0);
 
 <body>
 
-    <header class="tk-header">
-        <div class="container d-flex justify-content-between align-items-center">
-            <a href="index.php" class="tk-logo"><?= $t['app_nombre'] ?></a>
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-white d-none d-sm-block"><?= htmlspecialchars($_SESSION['nombre'] ?? 'Usuario') ?></span>
-                <img src="<?= htmlspecialchars($fotoPerfil); ?>?v=<?= time(); ?>" class="avatar-img" alt="Perfil">
-            </div>
-        </div>
+    <?php require 'partials/header_main.php'; ?>
     </header>
 
     <main class="container">
