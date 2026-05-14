@@ -24,31 +24,31 @@ $mailConfig = require __DIR__ . '/../config/mail.php';
 
 function enviarCorreo($mailConfig, $destino, $nombreDestino, $asunto, $html)
 {
-    $mail = new PHPMailer(true);
+    $apiKey = getenv('RESEND_API_KEY');
     
-    // MODO DEBUG ACTIVADO PARA DETECTAR EL ERROR 504
-  $mail->SMTPDebug = 0;
+    $data = [
+        'from'    => 'TicKeep Notificaciones <onboarding@resend.dev>',
+        'to'      => [$destino],
+        'subject' => $asunto,
+        'html'    => $html,
+    ];
 
-    $mail->isSMTP();
-    $mail->Host = $mailConfig['host'];
-    $mail->SMTPAuth = true;
-    $mail->Username = $mailConfig['username'];
-    $mail->Password = $mailConfig['password'];
-    $mail->SMTPSecure = $mailConfig['secure'];
-    $mail->Port = $mailConfig['port'];
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $apiKey,
+        'Content-Type: application/json',
+    ]);
 
-    $mail->CharSet = 'UTF-8';
-    $mail->Encoding = 'base64';
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-    $mail->setFrom($mailConfig['from_email'], $mailConfig['from_name']);
-    $mail->addAddress($destino, $nombreDestino);
-
-    $mail->isHTML(true);
-    $mail->Subject = $asunto;
-    $mail->Body = $html;
-    $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $html));
-
-    $mail->send();
+    if ($httpCode !== 200 && $httpCode !== 201) {
+        throw new Exception("Resend API error {$httpCode}: {$response}");
+    }
 }
 
 function yaSeEnvio($pdo, $id_usuario, $id_garantia, $tipo, $periodoClave = null)
