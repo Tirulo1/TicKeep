@@ -44,6 +44,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $fecha_vencimiento = $_POST['fecha_vencimiento'];
     $comentarios = trim($_POST['comentarios']);
 
+    // --- CÁLCULO DEL NUEVO ESTADO SEGÚN LA FECHA DE VENCIMIENTO ---
+    $hoy = new DateTime();
+    $vencimiento = new DateTime($fecha_vencimiento);
+    $diferencia = (int)$hoy->diff($vencimiento)->format('%r%a');
+
+    if ($diferencia < 0) {
+        $estado_actualizado = 'Caducada';
+    } elseif ($diferencia <= 30) {
+        $estado_actualizado = 'Expira pronto';
+    } else {
+        $estado_actualizado = 'Vigente';
+    }
+    // --------------------------------------------------------------
+
     try {
 
         $sql = "UPDATE garantias
@@ -51,7 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     tienda = :tienda,
                     fecha_compra = :fecha_compra,
                     fecha_vencimiento = :fecha_vencimiento,
-                    comentarios = :comentarios
+                    comentarios = :comentarios,
+                    estado = :estado
                 WHERE id_garantia = :id AND id_usuario = :user";
 
         $stmt = $pdo->prepare($sql);
@@ -62,6 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ':fecha_compra' => $fecha_compra,
             ':fecha_vencimiento' => $fecha_vencimiento,
             ':comentarios' => $comentarios,
+            ':estado' => $estado_actualizado,
             ':id' => $id_garantia,
             ':user' => $id_usuario
         ]);
